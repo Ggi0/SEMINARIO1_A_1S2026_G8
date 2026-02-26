@@ -6,6 +6,8 @@ from app.repositories.playlist_repository import (
 )
 from app.repositories.notification_repository import create_notification
 import psycopg2
+import os
+
 
 
 def add_movie_to_playlist(id_usuario, id_pelicula):
@@ -36,6 +38,10 @@ def add_movie_to_playlist(id_usuario, id_pelicula):
 def list_user_playlist(id_usuario):
 
     movies = get_user_playlist(id_usuario)
+    
+    bucket = os.getenv("AWS_BUCKET_NAME")
+    region = os.getenv("AWS_REGION")
+    base_url = f"https://{bucket}.s3.{region}.amazonaws.com"
 
     result = []
     for m in movies:
@@ -45,7 +51,7 @@ def list_user_playlist(id_usuario):
             "director": m[2],
             "anio_estreno": m[3],
             "url_contenido": m[4],
-            "poster": m[5],
+            "poster_url": f"{base_url}/{m[5]}",
             "estado": m[6]
         })
 
