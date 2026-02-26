@@ -160,7 +160,7 @@ export default function Register() {
                   <img src={photoPreview} alt="preview" style={styles.avatarImg} />
                 ) : (
                   <div style={styles.avatarPlaceholder}>
-                    <span style={styles.avatarIcon}>📷</span>
+                    <span style={styles.avatarIcon}></span>
                     <span style={styles.avatarText}>Foto de perfil</span>
                     <span style={styles.avatarHint}>Opcional</span>
                   </div>
