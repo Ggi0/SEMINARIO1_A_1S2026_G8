@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
+const API_BASE_URL = "http://localhost:3000/api";
+
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -9,7 +11,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -19,13 +21,34 @@ export default function Login() {
     }
 
     setLoading(true);
-    console.log("Login:", { email, password });
 
-    // Simulación de login
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          correo: email,
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Error al iniciar sesión");
+      }
+
+      // Guardar datos del usuario en sessionStorage
+      sessionStorage.setItem("user", JSON.stringify(data.user));
+
       navigate("/gallery");
-    }, 1200);
+    } catch (err) {
+      setError(err.message || "No se pudo conectar con el servidor. Intenta de nuevo.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -75,6 +98,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 style={styles.input}
                 className="field-input"
+                onKeyDown={(e) => e.key === "Enter" && handleLogin(e)}
               />
             </div>
           </div>
@@ -93,6 +117,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 style={styles.input}
                 className="field-input"
+                onKeyDown={(e) => e.key === "Enter" && handleLogin(e)}
               />
               <button
                 type="button"
@@ -305,7 +330,6 @@ const styles = {
   fieldGroup: { display: "flex", flexDirection: "column", gap: "0.5rem" },
   labelRow: { display: "flex", justifyContent: "space-between", alignItems: "center" },
   label: { fontSize: "0.8rem", color: "#9e9a93", letterSpacing: "0.06em", textTransform: "uppercase" },
-  forgotLink: { fontSize: "0.78rem", color: "#c8a96e", textDecoration: "none" },
 
   inputWrap: {
     display: "flex",
