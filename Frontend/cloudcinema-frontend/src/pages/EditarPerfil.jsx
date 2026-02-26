@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { updateProfile } from "../services/userService";
+import { updateProfile } from "../services/Userservice.js";
 
 export default function EditarPerfil() {
   const navigate = useNavigate();

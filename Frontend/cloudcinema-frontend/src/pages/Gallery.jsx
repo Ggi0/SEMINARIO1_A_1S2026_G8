@@ -1,46 +1,84 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
-const MOVIES = [
-  { id: 1, title: "Dune: Part Two", genre: "Sci-Fi", year: 2024, rating: 8.9, color: "#c8a96e", badge: "NUEVO" },
-  { id: 2, title: "Oppenheimer", genre: "Drama", year: 2023, rating: 8.4, color: "#e07b39", badge: "TOP" },
-  { id: 3, title: "Poor Things", genre: "Fantasy", year: 2023, rating: 8.0, color: "#7eb8c9", badge: null },
-  { id: 4, title: "The Brutalist", genre: "Drama", year: 2024, rating: 7.9, color: "#a89b8c", badge: null },
-  { id: 5, title: "Alien: Romulus", genre: "Terror", year: 2024, rating: 7.2, color: "#8cb87e", badge: "NUEVO" },
-  { id: 6, title: "Furiosa", genre: "Acción", year: 2024, rating: 7.8, color: "#c87e7e", badge: null },
-  { id: 7, title: "Inside Out 2", genre: "Animación", year: 2024, rating: 7.9, color: "#b87ec8", badge: "TOP" },
-  { id: 8, title: "Civil War", genre: "Thriller", year: 2024, rating: 7.5, color: "#7e9bc8", badge: null },
-  { id: 9, title: "Challengers", genre: "Romance", year: 2024, rating: 7.6, color: "#c8ae7e", badge: null },
-  { id: 10, title: "Nosferatu", genre: "Terror", year: 2024, rating: 7.1, color: "#8c7ec8", badge: "NUEVO" },
-  { id: 11, title: "Flow", genre: "Animación", year: 2024, rating: 8.3, color: "#7ec8b8", badge: "TOP" },
-  { id: 12, title: "Conclave", genre: "Thriller", year: 2024, rating: 7.4, color: "#c8907e", badge: null },
-];
-
-const GENRES = ["Todos", "Acción", "Terror", "Drama", "Animación", "Sci-Fi", "Thriller", "Romance", "Fantasy"];
+import { getMovies } from "../services/movieService";
+import { addToPlaylist } from "../services/playlistService";
+import Notification from "../components/Notification";
 
 export default function Gallery() {
   const navigate = useNavigate();
 
-  // ── Leer usuario del sessionStorage ──────────────────────────
   const user = JSON.parse(sessionStorage.getItem("user") || "{}");
   const userName = user.nombre_completo || "Usuario";
   const userEmail = user.correo || "";
   const userInitial = userName[0]?.toUpperCase() || "U";
   const userPhoto = user.foto_perfil || null;
 
-  const [activeGenre, setActiveGenre] = useState("Todos");
+  const [movies, setMovies] = useState([]);
+  const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = MOVIES.filter((m) => {
-    const matchGenre = activeGenre === "Todos" || m.genre === activeGenre;
-    const matchSearch = m.title.toLowerCase().includes(search.toLowerCase());
-    return matchGenre && matchSearch;
+
+  const [notification, setNotification] = useState({
+    message: "",
+    type: "success",
+    visible: false,
   });
+
+
+  const circleStyle = { position: "absolute", top: "10px", right: "10px", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: "bold", color: "white", boxShadow: "0 2px 6px rgba(0,0,0,0.3)" };
+  
+  //  Cargar películas desde backend
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        const data = await getMovies();
+        setMovies(data);
+        setFiltered(data);
+      } catch (error) {
+        console.error("Error cargando películas:", error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMovies();
+  }, []);
+
+  // Filtro por búsqueda
+  useEffect(() => {
+    const result = movies.filter((m) =>
+      m.titulo.toLowerCase().includes(search.toLowerCase())
+    );
+    setFiltered(result);
+  }, [search, movies]);
 
   const handleLogout = () => {
     sessionStorage.removeItem("user");
     navigate("/");
+  };
+
+  const handleAddToPlaylist = async (movie) => {
+    try {
+      await addToPlaylist(user.id_usuario, movie.id_pelicula);
+
+      setNotification({
+        message: `"${movie.titulo}" agregada a tu lista`,
+        type: "success",
+        visible: true,
+      });
+    } catch (error) {
+      setNotification({
+        message: error.message,
+        type: "error",
+        visible: true,
+      });
+    }
+  };
+
+  const handlePlay = (url) => {
+    window.open(url, "_blank");
   };
 
   return (
@@ -49,11 +87,23 @@ export default function Gallery() {
       <div style={styles.ambientBg} />
       <div style={styles.grain} />
 
+      {notification.visible && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={() =>
+            setNotification((prev) => ({ ...prev, visible: false }))
+          }
+        />
+      )}
+
       {/* NAV */}
       <nav style={styles.nav}>
         <Link to="/" style={styles.logoWrap} className="logo-link">
           <span style={styles.logoIcon}>◈</span>
-          <span style={styles.logoText}>CLOUD<em>CINEMA</em></span>
+          <span style={styles.logoText}>
+            CLOUD<em>CINEMA</em>
+          </span>
         </Link>
 
         {/* Search */}
@@ -68,9 +118,20 @@ export default function Gallery() {
             className="search-input"
           />
           {search && (
-            <button onClick={() => setSearch("")} style={styles.clearBtn}>✕</button>
+            <button onClick={() => setSearch("")} style={styles.clearBtn}>
+              ✕
+            </button>
           )}
         </div>
+
+{/* Playlist Button */}
+<Link
+  to="/playlist"
+  style={styles.playlistBtn}
+  className="playlist-btn"
+>
+  Mi Lista
+</Link>
 
         {/* Profile */}
         <div style={styles.profileArea}>
@@ -82,13 +143,26 @@ export default function Gallery() {
             {/* Avatar: foto real o inicial */}
             <div style={styles.profileAvatar}>
               {userPhoto ? (
-                <img src={userPhoto} alt={userName} style={styles.profileAvatarImg} />
+                <img
+                  src={userPhoto}
+                  alt={userName}
+                  style={styles.profileAvatarImg}
+                />
               ) : (
                 <span style={styles.profileInitial}>{userInitial}</span>
               )}
             </div>
             <span style={styles.profileName}>{userName}</span>
-            <span style={{ fontSize: "0.7rem", color: "#5a5650", transition: "transform 0.2s", transform: profileOpen ? "rotate(180deg)" : "rotate(0)" }}>▼</span>
+            <span
+              style={{
+                fontSize: "0.7rem",
+                color: "#5a5650",
+                transition: "transform 0.2s",
+                transform: profileOpen ? "rotate(180deg)" : "rotate(0)",
+              }}
+            >
+              ▼
+            </span>
           </button>
 
           {/* Dropdown */}
@@ -97,9 +171,26 @@ export default function Gallery() {
               <div style={styles.dropdownHeader}>
                 <div style={styles.dropdownAvatar}>
                   {userPhoto ? (
-                    <img src={userPhoto} alt={userName} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                    <img
+                      src={userPhoto}
+                      alt={userName}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        borderRadius: "50%",
+                      }}
+                    />
                   ) : (
-                    <span style={{ fontSize: "1.3rem", fontWeight: 700, color: "#c8a96e" }}>{userInitial}</span>
+                    <span
+                      style={{
+                        fontSize: "1.3rem",
+                        fontWeight: 700,
+                        color: "#c8a96e",
+                      }}
+                    >
+                      {userInitial}
+                    </span>
                   )}
                 </div>
                 <div>
@@ -111,9 +202,12 @@ export default function Gallery() {
               <button
                 style={styles.dropdownItem}
                 className="dropdown-item"
-                onClick={() => { setProfileOpen(false); navigate("/edit-profile"); }}
+                onClick={() => {
+                  setProfileOpen(false);
+                  navigate("/edit-profile");
+                }}
               >
-                 &nbsp;Editar perfil
+                &nbsp;Editar perfil
               </button>
               <div style={styles.dropdownDivider} />
               <button
@@ -121,97 +215,105 @@ export default function Gallery() {
                 className="dropdown-item"
                 onClick={handleLogout}
               >
-                 Cerrar sesión
+                Cerrar sesión
               </button>
             </div>
           )}
         </div>
       </nav>
 
-      {/* HERO BANNER */}
-      <section style={styles.banner}>
-        <div style={styles.bannerGlow} />
-        <p style={styles.bannerLabel}> Destacado de la semana</p>
-        <h1 style={styles.bannerTitle}>Dune: Part Two</h1>
-        <p style={styles.bannerDesc}>El viaje épico de Paul Atreides continúa en Arrakis. Una historia de poder, amor y destino.</p>
-        <div style={styles.bannerActions}>
-          <button style={styles.bannerPlay} className="banner-play">▶ Ver ahora</button>
-          <button style={styles.bannerInfo} className="banner-info">+ Mi lista</button>
-        </div>
-      </section>
-
-      {/* GENRE FILTER */}
-      <div style={styles.filterBar}>
-        {GENRES.map((g) => (
-          <button
-            key={g}
-            onClick={() => setActiveGenre(g)}
-            style={{
-              ...styles.genreBtn,
-              background: activeGenre === g ? "#c8a96e" : "rgba(255,255,255,0.04)",
-              color: activeGenre === g ? "#080810" : "#9e9a93",
-              border: activeGenre === g ? "1px solid #c8a96e" : "1px solid rgba(255,255,255,0.08)",
-              fontWeight: activeGenre === g ? 600 : 400,
-            }}
-            className="genre-btn"
-          >
-            {g}
-          </button>
-        ))}
-      </div>
-
       {/* GRID */}
-      <section style={styles.gridSection}>
-        <h2 style={styles.gridTitle}>
-          {activeGenre === "Todos" ? "Todas las películas" : activeGenre}
-          <span style={styles.gridCount}>{filtered.length} títulos</span>
-        </h2>
+      {loading ? (
+        <p>Cargando películas...</p>
+      ) : filtered.length === 0 ? (
+        <p>No hay películas disponibles</p>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+            gap: "1.5rem",
+          }}
+        >
+          {filtered.map((movie) => (
+            <div
+              key={movie.id_pelicula}
+              style={{
+                background: "#1a1a26",
+                borderRadius: "12px",
+                overflow: "hidden",
+                transition: "0.3s",
+                position: "relative",
+              }}
+            >
+              
+              {/* BOTÓN SUPERIOR DERECHO */}
+              {movie.is_available ? (
+  <button
+    onClick={() => handleAddToPlaylist(movie)}
+    style={{
+      ...circleStyle,
+      background: "#c8a96e", // dorado
+      border: "none",
+      cursor: "pointer"
+    }}
+    title="Agregar a la playlist"
+  >
+    +
+  </button>
+) : (
+  <div
+    style={{
+      ...circleStyle,
+      background: "#555" // gris
+    }}
+    title="Próximamente se agregará al catálogo"
+  >
+    ?
+  </div>
+)}
 
-        {filtered.length === 0 ? (
-          <div style={styles.empty}>
-            <p style={{ fontSize: "2rem" }}>🎬</p>
-            <p style={{ color: "#5a5650" }}>No se encontraron resultados para "{search}"</p>
-          </div>
-        ) : (
-          <div style={styles.grid}>
-            {filtered.map((movie, i) => (
-              <div
-                key={movie.id}
-                style={{ ...styles.card, animationDelay: `${i * 0.05}s`, "--accent": movie.color }}
-                className="movie-card"
-              >
-                <div style={{ ...styles.poster, background: `linear-gradient(145deg, ${movie.color}30 0%, #0a0a14 100%)` }}>
-                  <div style={{ ...styles.posterGlow, background: movie.color }} />
-                  {movie.badge && (
-                    <span style={{
-                      ...styles.badge,
-                      background: movie.badge === "TOP" ? "#c8a96e" : "#6ec88a",
-                      color: "#080810",
-                    }}>{movie.badge}</span>
-                  )}
-                  <div style={styles.posterOverlay} className="poster-overlay">
-                    <button style={styles.playBtn} className="play-btn">▶</button>
-                    <button style={styles.listBtn} className="list-btn">+</button>
-                  </div>
-                </div>
-                <div style={styles.cardInfo}>
-                  <p style={styles.cardTitle}>{movie.title}</p>
-                  <div style={styles.cardMeta}>
-                    <span style={styles.cardGenre}>{movie.genre}</span>
-                    <span style={styles.cardYear}>{movie.year}</span>
-                    <span style={styles.cardRating}>★ {movie.rating}</span>
-                  </div>
-                </div>
+              <img
+                src={movie.poster_url}
+                alt={movie.titulo}
+                style={{ width: "100%", height: "280px", objectFit: "cover" }}
+              />
+
+              <div style={{ padding: "1rem" }}>
+                <h3>{movie.titulo}</h3>
+                <p style={{ fontSize: "0.9rem", color: "#aaa" }}>
+                  {movie.director}
+                </p>
+
+                <button
+                  disabled={!movie.is_available}
+                  onClick={() => handlePlay(movie.url_contenido)}
+                  style={{
+                    marginTop: "0.8rem",
+                    width: "100%",
+                    padding: "0.5rem",
+                    borderRadius: "6px",
+                    border: "none",
+                    background: movie.is_available ? "#c8a96e" : "#555",
+                    cursor: movie.is_available ? "pointer" : "not-allowed",
+                  }}
+                >
+                  {movie.is_available ? "Ver ahora" : "Próximamente"}
+                </button>
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Footer */}
       <footer style={styles.footer}>
-        <span style={styles.logoText}>CLOUD<em>CINEMA</em></span>
-        <p style={{ fontSize: "0.75rem", color: "#2e2b28" }}>© 2026 · Todos los derechos reservados</p>
+        <span style={styles.logoText}>
+          CLOUD<em>CINEMA</em>
+        </span>
+        <p style={{ fontSize: "0.75rem", color: "#2e2b28" }}>
+          © 2026 · Todos los derechos reservados
+        </p>
       </footer>
     </div>
   );
@@ -269,113 +371,427 @@ const globalStyles = `
 
   @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
   @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+
+  @keyframes slideIn {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes progress {
+  from { width: 100%; }
+  to { width: 0%; }
+  
+}
+
+.playlist-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+  
 `;
 
 const styles = {
-  root: { fontFamily: "'DM Sans', sans-serif", background: "#080810", color: "#e8e4dc", minHeight: "100vh", position: "relative" },
+  root: {
+    fontFamily: "'DM Sans', sans-serif",
+    background: "#080810",
+    color: "#e8e4dc",
+    minHeight: "100vh",
+    position: "relative",
+  },
   ambientBg: {
-    position: "fixed", inset: 0,
-    background: "radial-gradient(ellipse 60% 50% at 30% 20%, #c8a96e0d 0%, transparent 60%), radial-gradient(ellipse 40% 40% at 80% 70%, #7b4b9e10 0%, transparent 50%)",
-    pointerEvents: "none", animation: "pulse 8s ease infinite", zIndex: 0,
+    position: "fixed",
+    inset: 0,
+    background:
+      "radial-gradient(ellipse 60% 50% at 30% 20%, #c8a96e0d 0%, transparent 60%), radial-gradient(ellipse 40% 40% at 80% 70%, #7b4b9e10 0%, transparent 50%)",
+    pointerEvents: "none",
+    animation: "pulse 8s ease infinite",
+    zIndex: 0,
   },
   grain: {
-    position: "fixed", inset: 0,
+    position: "fixed",
+    inset: 0,
     backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E")`,
-    opacity: 0.4, pointerEvents: "none", zIndex: 1,
+    opacity: 0.4,
+    pointerEvents: "none",
+    zIndex: 1,
   },
   nav: {
-    position: "sticky", top: 0, zIndex: 100,
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    padding: "1rem 3rem", background: "rgba(8,8,16,0.9)", backdropFilter: "blur(20px)",
-    borderBottom: "1px solid rgba(200,169,110,0.08)", gap: "1.5rem",
+    position: "sticky",
+    top: 0,
+    zIndex: 100,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "1rem 3rem",
+    background: "rgba(8,8,16,0.9)",
+    backdropFilter: "blur(20px)",
+    borderBottom: "1px solid rgba(200,169,110,0.08)",
+    gap: "1.5rem",
   },
-  logoWrap: { display: "flex", alignItems: "center", gap: "0.5rem", textDecoration: "none", flexShrink: 0 },
+  logoWrap: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+    textDecoration: "none",
+    flexShrink: 0,
+  },
   logoIcon: { color: "#c8a96e", fontSize: "1.2rem" },
-  logoText: { fontFamily: "'Playfair Display', serif", fontSize: "1.1rem", fontWeight: 700, letterSpacing: "0.12em", color: "#e8e4dc" },
+  logoText: {
+    fontFamily: "'Playfair Display', serif",
+    fontSize: "1.1rem",
+    fontWeight: 700,
+    letterSpacing: "0.12em",
+    color: "#e8e4dc",
+  },
   searchWrap: {
-    flex: 1, maxWidth: "400px", display: "flex", alignItems: "center",
-    background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: "50px", padding: "0 1rem", transition: "border-color 0.2s, box-shadow 0.2s",
+    flex: 1,
+    maxWidth: "400px",
+    display: "flex",
+    alignItems: "center",
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "50px",
+    padding: "0 1rem",
+    transition: "border-color 0.2s, box-shadow 0.2s",
   },
   searchIcon: { fontSize: "0.85rem", marginRight: "0.5rem", opacity: 0.5 },
-  searchInput: { flex: 1, background: "transparent", border: "none", color: "#e8e4dc", fontSize: "0.875rem", padding: "0.6rem 0", fontFamily: "'DM Sans', sans-serif" },
-  clearBtn: { background: "none", border: "none", color: "#5a5650", cursor: "pointer", fontSize: "0.8rem", padding: "0.2rem" },
+  searchInput: {
+    flex: 1,
+    background: "transparent",
+    border: "none",
+    color: "#e8e4dc",
+    fontSize: "0.875rem",
+    padding: "0.6rem 0",
+    fontFamily: "'DM Sans', sans-serif",
+  },
+  clearBtn: {
+    background: "none",
+    border: "none",
+    color: "#5a5650",
+    cursor: "pointer",
+    fontSize: "0.8rem",
+    padding: "0.2rem",
+  },
 
   profileArea: { position: "relative", flexShrink: 0 },
   profileBtn: {
-    display: "flex", alignItems: "center", gap: "0.6rem",
-    background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: "50px", padding: "0.4rem 1rem 0.4rem 0.4rem",
-    cursor: "pointer", color: "#e8e4dc",
+    display: "flex",
+    alignItems: "center",
+    gap: "0.6rem",
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "50px",
+    padding: "0.4rem 1rem 0.4rem 0.4rem",
+    cursor: "pointer",
+    color: "#e8e4dc",
   },
   profileAvatar: {
-    width: "32px", height: "32px", borderRadius: "50%",
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
     background: "linear-gradient(135deg, #c8a96e, #8c6e3a)",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    overflow: "hidden", flexShrink: 0,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    flexShrink: 0,
   },
   profileAvatarImg: { width: "100%", height: "100%", objectFit: "cover" },
   profileInitial: { fontSize: "0.85rem", fontWeight: 600, color: "#080810" },
-  profileName: { fontSize: "0.85rem", color: "#9e9a93", maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  profileName: {
+    fontSize: "0.85rem",
+    color: "#9e9a93",
+    maxWidth: "120px",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+
+  playlistBtn: {
+    textDecoration: "none",
+    padding: "8px 18px",
+    borderRadius: "20px",
+    fontSize: "0.85rem",
+    fontWeight: "600",
+    letterSpacing: "0.5px",
+    color: "#1f1f1f",
+    background: "linear-gradient(135deg, #f5c518, #e6b800)",
+    transition: "all 0.25s ease",
+    marginRight: "18px",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+  },
 
   dropdown: {
-    position: "absolute", top: "calc(100% + 0.5rem)", right: 0,
-    width: "220px", background: "#0f0f1a",
-    border: "1px solid rgba(255,255,255,0.09)", borderRadius: "14px",
-    padding: "0.5rem", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", zIndex: 200,
+    position: "absolute",
+    top: "calc(100% + 0.5rem)",
+    right: 0,
+    width: "220px",
+    background: "#0f0f1a",
+    border: "1px solid rgba(255,255,255,0.09)",
+    borderRadius: "14px",
+    padding: "0.5rem",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+    zIndex: 200,
   },
-  dropdownHeader: { display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.75rem" },
+  dropdownHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.75rem",
+    padding: "0.75rem",
+  },
   dropdownAvatar: {
-    width: "40px", height: "40px", borderRadius: "50%",
-    background: "rgba(200,169,110,0.1)", border: "1px solid rgba(200,169,110,0.2)",
-    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
+    background: "rgba(200,169,110,0.1)",
+    border: "1px solid rgba(200,169,110,0.2)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
     overflow: "hidden",
   },
   dropdownName: { fontSize: "0.875rem", fontWeight: 500 },
   dropdownEmail: { fontSize: "0.72rem", color: "#5a5650" },
-  dropdownDivider: { height: "1px", background: "rgba(255,255,255,0.06)", margin: "0.25rem 0" },
+  dropdownDivider: {
+    height: "1px",
+    background: "rgba(255,255,255,0.06)",
+    margin: "0.25rem 0",
+  },
   dropdownItem: {
-    display: "block", width: "100%", textAlign: "left",
-    background: "none", border: "none", color: "#9e9a93",
-    padding: "0.65rem 0.75rem", fontSize: "0.85rem", borderRadius: "8px",
-    cursor: "pointer", fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.02em",
+    display: "block",
+    width: "100%",
+    textAlign: "left",
+    background: "none",
+    border: "none",
+    color: "#9e9a93",
+    padding: "0.65rem 0.75rem",
+    fontSize: "0.85rem",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontFamily: "'DM Sans', sans-serif",
+    letterSpacing: "0.02em",
   },
 
   banner: {
-    position: "relative", zIndex: 2, padding: "4rem 3rem 3rem",
-    background: "linear-gradient(to bottom, rgba(200,169,110,0.06) 0%, transparent 100%)",
-    borderBottom: "1px solid rgba(255,255,255,0.04)", overflow: "hidden",
+    position: "relative",
+    zIndex: 2,
+    padding: "4rem 3rem 3rem",
+    background:
+      "linear-gradient(to bottom, rgba(200,169,110,0.06) 0%, transparent 100%)",
+    borderBottom: "1px solid rgba(255,255,255,0.04)",
+    overflow: "hidden",
   },
-  bannerGlow: { position: "absolute", top: "-50%", right: "10%", width: "500px", height: "500px", background: "radial-gradient(circle, #c8a96e12 0%, transparent 60%)", pointerEvents: "none" },
-  bannerLabel: { fontSize: "0.78rem", color: "#c8a96e", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "0.75rem" },
-  bannerTitle: { fontFamily: "'Playfair Display', serif", fontSize: "clamp(2rem, 4vw, 3.5rem)", fontWeight: 700, marginBottom: "0.75rem", maxWidth: "600px" },
-  bannerDesc: { color: "#9e9a93", fontSize: "0.95rem", lineHeight: 1.7, maxWidth: "500px", marginBottom: "2rem" },
+  bannerGlow: {
+    position: "absolute",
+    top: "-50%",
+    right: "10%",
+    width: "500px",
+    height: "500px",
+    background: "radial-gradient(circle, #c8a96e12 0%, transparent 60%)",
+    pointerEvents: "none",
+  },
+  bannerLabel: {
+    fontSize: "0.78rem",
+    color: "#c8a96e",
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    marginBottom: "0.75rem",
+  },
+  bannerTitle: {
+    fontFamily: "'Playfair Display', serif",
+    fontSize: "clamp(2rem, 4vw, 3.5rem)",
+    fontWeight: 700,
+    marginBottom: "0.75rem",
+    maxWidth: "600px",
+  },
+  bannerDesc: {
+    color: "#9e9a93",
+    fontSize: "0.95rem",
+    lineHeight: 1.7,
+    maxWidth: "500px",
+    marginBottom: "2rem",
+  },
   bannerActions: { display: "flex", gap: "1rem" },
-  bannerPlay: { background: "#c8a96e", color: "#080810", border: "none", borderRadius: "8px", padding: "0.75rem 1.75rem", fontSize: "0.9rem", fontWeight: 600, fontFamily: "'DM Sans', sans-serif", cursor: "pointer" },
-  bannerInfo: { background: "rgba(255,255,255,0.08)", color: "#e8e4dc", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "8px", padding: "0.75rem 1.5rem", fontSize: "0.9rem", fontFamily: "'DM Sans', sans-serif", cursor: "pointer" },
+  bannerPlay: {
+    background: "#c8a96e",
+    color: "#080810",
+    border: "none",
+    borderRadius: "8px",
+    padding: "0.75rem 1.75rem",
+    fontSize: "0.9rem",
+    fontWeight: 600,
+    fontFamily: "'DM Sans', sans-serif",
+    cursor: "pointer",
+  },
+  bannerInfo: {
+    background: "rgba(255,255,255,0.08)",
+    color: "#e8e4dc",
+    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: "8px",
+    padding: "0.75rem 1.5rem",
+    fontSize: "0.9rem",
+    fontFamily: "'DM Sans', sans-serif",
+    cursor: "pointer",
+  },
 
-  filterBar: { position: "relative", zIndex: 2, display: "flex", gap: "0.5rem", padding: "1.5rem 3rem", overflowX: "auto", flexWrap: "wrap" },
-  genreBtn: { borderRadius: "50px", padding: "0.45rem 1.1rem", fontSize: "0.82rem", cursor: "pointer", whiteSpace: "nowrap", fontFamily: "'DM Sans', sans-serif" },
+  filterBar: {
+    position: "relative",
+    zIndex: 2,
+    display: "flex",
+    gap: "0.5rem",
+    padding: "1.5rem 3rem",
+    overflowX: "auto",
+    flexWrap: "wrap",
+  },
+  genreBtn: {
+    borderRadius: "50px",
+    padding: "0.45rem 1.1rem",
+    fontSize: "0.82rem",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    fontFamily: "'DM Sans', sans-serif",
+  },
 
   gridSection: { position: "relative", zIndex: 2, padding: "0 3rem 4rem" },
-  gridTitle: { fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "1rem" },
-  gridCount: { fontSize: "0.78rem", color: "#3a3630", fontFamily: "'DM Sans', sans-serif", fontWeight: 400 },
-  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: "1.25rem" },
-  empty: { textAlign: "center", padding: "4rem", display: "flex", flexDirection: "column", gap: "0.75rem", alignItems: "center" },
+  gridTitle: {
+    fontFamily: "'Playfair Display', serif",
+    fontSize: "1.4rem",
+    marginBottom: "1.5rem",
+    display: "flex",
+    alignItems: "center",
+    gap: "1rem",
+  },
+  gridCount: {
+    fontSize: "0.78rem",
+    color: "#3a3630",
+    fontFamily: "'DM Sans', sans-serif",
+    fontWeight: 400,
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))",
+    gap: "1.25rem",
+  },
+  empty: {
+    textAlign: "center",
+    padding: "4rem",
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.75rem",
+    alignItems: "center",
+  },
 
-  card: { borderRadius: "12px", overflow: "hidden", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", cursor: "pointer" },
-  poster: { height: "230px", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" },
-  posterGlow: { position: "absolute", top: "20%", left: "20%", width: "60%", height: "60%", borderRadius: "50%", filter: "blur(30px)", opacity: 0.3 },
-  badge: { position: "absolute", top: "0.6rem", left: "0.6rem", fontSize: "0.62rem", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: "4px", letterSpacing: "0.08em", zIndex: 2 },
-  posterOverlay: { position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem", zIndex: 3 },
-  playBtn: { background: "rgba(255,255,255,0.15)", border: "2px solid rgba(255,255,255,0.4)", color: "#fff", width: "44px", height: "44px", borderRadius: "50%", cursor: "pointer", fontSize: "0.9rem", display: "flex", alignItems: "center", justifyContent: "center" },
-  listBtn: { background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", width: "34px", height: "34px", borderRadius: "50%", cursor: "pointer", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center" },
+  card: {
+    borderRadius: "12px",
+    overflow: "hidden",
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.06)",
+    cursor: "pointer",
+  },
+  poster: {
+    height: "230px",
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  posterGlow: {
+    position: "absolute",
+    top: "20%",
+    left: "20%",
+    width: "60%",
+    height: "60%",
+    borderRadius: "50%",
+    filter: "blur(30px)",
+    opacity: 0.3,
+  },
+  badge: {
+    position: "absolute",
+    top: "0.6rem",
+    left: "0.6rem",
+    fontSize: "0.62rem",
+    fontWeight: 700,
+    padding: "0.2rem 0.5rem",
+    borderRadius: "4px",
+    letterSpacing: "0.08em",
+    zIndex: 2,
+  },
+  posterOverlay: {
+    position: "absolute",
+    inset: 0,
+    background: "rgba(0,0,0,0.55)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "0.75rem",
+    zIndex: 3,
+  },
+  playBtn: {
+    background: "rgba(255,255,255,0.15)",
+    border: "2px solid rgba(255,255,255,0.4)",
+    color: "#fff",
+    width: "44px",
+    height: "44px",
+    borderRadius: "50%",
+    cursor: "pointer",
+    fontSize: "0.9rem",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  listBtn: {
+    background: "rgba(255,255,255,0.1)",
+    border: "1px solid rgba(255,255,255,0.25)",
+    color: "#fff",
+    width: "34px",
+    height: "34px",
+    borderRadius: "50%",
+    cursor: "pointer",
+    fontSize: "1.1rem",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   cardInfo: { padding: "0.75rem" },
-  cardTitle: { fontSize: "0.85rem", fontWeight: 500, marginBottom: "0.4rem", lineHeight: 1.3 },
-  cardMeta: { display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" },
-  cardGenre: { fontSize: "0.68rem", color: "#5a5650", background: "rgba(255,255,255,0.05)", padding: "0.15rem 0.4rem", borderRadius: "3px" },
+  cardTitle: {
+    fontSize: "0.85rem",
+    fontWeight: 500,
+    marginBottom: "0.4rem",
+    lineHeight: 1.3,
+  },
+  cardMeta: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+    flexWrap: "wrap",
+  },
+  cardGenre: {
+    fontSize: "0.68rem",
+    color: "#5a5650",
+    background: "rgba(255,255,255,0.05)",
+    padding: "0.15rem 0.4rem",
+    borderRadius: "3px",
+  },
   cardYear: { fontSize: "0.68rem", color: "#5a5650" },
   cardRating: { fontSize: "0.72rem", color: "#c8a96e", marginLeft: "auto" },
 
-  footer: { position: "relative", zIndex: 2, padding: "2rem 3rem", borderTop: "1px solid rgba(255,255,255,0.04)", display: "flex", justifyContent: "space-between", alignItems: "center" },
+  footer: {
+    position: "relative",
+    zIndex: 2,
+    padding: "2rem 3rem",
+    borderTop: "1px solid rgba(255,255,255,0.04)",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
 };

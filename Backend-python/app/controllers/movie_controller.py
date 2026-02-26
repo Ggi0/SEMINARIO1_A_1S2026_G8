@@ -8,6 +8,10 @@ movie_bp = Blueprint("movie_bp", __name__)
 def get_movies():
     try:
         movies = list_movies()
+        bucket = os.getenv("AWS_BUCKET_NAME")
+        region = os.getenv("AWS_REGION")
+
+        base_url = f"https://{bucket}.s3.{region}.amazonaws.com"
 
         data = []
         for m in movies:
@@ -16,7 +20,7 @@ def get_movies():
                 "titulo": m["titulo"],
                 "director": m["director"],
                 "anio_estreno": m["anio_estreno"],
-                "poster_url": f"{os.getenv('S3_PUBLIC_BASE')}/{m['poster']}",
+                "poster_url": f"{base_url}/{m['poster']}",
                 "url_contenido": m["url_contenido"],
                 "estado": m["estado"],
                 "is_available": m["estado"] == "Disponible"

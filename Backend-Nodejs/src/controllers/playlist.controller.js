@@ -30,10 +30,15 @@ async function getUser(req, res, next) {
 
     const playlist = await playlistService.listUserPlaylist(id_usuario);
 
+    const bucket = process.env.AWS_BUCKET_NAME;
+    const region = process.env.AWS_REGION;
+
+    const baseUrl = `https://${bucket}.s3.${region}.amazonaws.com`;
+
     const data = playlist.map(p => ({
       id_pelicula: p.id_pelicula,
       titulo: p.titulo,
-      poster_url: `${process.env.S3_PUBLIC_BASE}/${p.poster}`,
+      poster_url: `${baseUrl}/${p.poster}`,
       director: p.director,
       anio_estreno: p.anio_estreno,
       url_contenido: p.url_contenido,
