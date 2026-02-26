@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-
-const API_BASE_URL = "http://localhost:3000/api";
+import { loginUser } from "../services/authService";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -23,26 +22,8 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          correo: email,
-          password: password,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.message || "Error al iniciar sesión");
-      }
-
-      // Guardar datos del usuario en sessionStorage
+      const data = await loginUser(email, password);
       sessionStorage.setItem("user", JSON.stringify(data.user));
-
       navigate("/gallery");
     } catch (err) {
       setError(err.message || "No se pudo conectar con el servidor. Intenta de nuevo.");

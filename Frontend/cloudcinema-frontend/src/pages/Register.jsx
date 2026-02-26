@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { registerUser } from "../services/authService";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -15,15 +16,66 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [showPhotoMenu, setShowPhotoMenu] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
 
-  const handlePhoto = (e) => {
+  const fileInputRef = useRef(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const streamRef = useRef(null);
+
+  // ── Foto desde archivo ──────────────────────────────────────
+  const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setForm({ ...form, photo: file });
     setPhotoPreview(URL.createObjectURL(file));
+    setShowPhotoMenu(false);
   };
 
-  const handleSubmit = (e) => {
+  // ── Abrir cámara ────────────────────────────────────────────
+  const openCamera = async () => {
+    setShowPhotoMenu(false);
+    setShowCamera(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+      streamRef.current = stream;
+      // Esperar a que el video esté montado
+      setTimeout(() => {
+        if (videoRef.current) videoRef.current.srcObject = stream;
+      }, 100);
+    } catch {
+      setError("No se pudo acceder a la cámara. Verifica los permisos.");
+      setShowCamera(false);
+    }
+  };
+
+  // ── Capturar foto desde cámara ──────────────────────────────
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d").drawImage(video, 0, 0);
+    canvas.toBlob((blob) => {
+      const file = new File([blob], "foto_camara.jpg", { type: "image/jpeg" });
+      setForm((prev) => ({ ...prev, photo: file }));
+      setPhotoPreview(URL.createObjectURL(blob));
+    }, "image/jpeg");
+    closeCamera();
+  };
+
+  // ── Cerrar cámara ───────────────────────────────────────────
+  const closeCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    setShowCamera(false);
+  };
+
+  // ── Submit ──────────────────────────────────────────────────
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -41,12 +93,21 @@ export default function Register() {
     }
 
     setLoading(true);
-    console.log(form);
+    try {
+      const formData = new FormData();
+      formData.append("correo", form.email);
+      formData.append("nombre_completo", form.name);
+      formData.append("password", form.password);
+      formData.append("confirm_password", form.confirmPassword);
+      if (form.photo) formData.append("foto", form.photo);
 
-    setTimeout(() => {
+      await registerUser(formData);
+      navigate("/login");
+    } catch (err) {
+      setError(err.message || "No se pudo conectar con el servidor.");
+    } finally {
       setLoading(false);
-      navigate("/gallery");
-    }, 1400);
+    }
   };
 
   const passwordStrength = () => {
@@ -82,32 +143,85 @@ export default function Register() {
         <h1 style={styles.title}>Crea tu cuenta</h1>
         <p style={styles.subtitle}>Únete y disfruta del mejor cine</p>
 
-        {/* Error */}
         {error && <div style={styles.errorBox}>⚠ {error}</div>}
 
         <div style={styles.form}>
 
-          {/* Avatar upload */}
+          {/* ── Avatar ── */}
           <div style={styles.avatarSection}>
-            <label htmlFor="photo-upload" style={styles.avatarLabel} className="avatar-label">
-              {photoPreview ? (
-                <img src={photoPreview} alt="preview" style={styles.avatarImg} />
-              ) : (
-                <div style={styles.avatarPlaceholder}>
-                  <span style={styles.avatarIcon}></span>
-                  <span style={styles.avatarText}>Foto de perfil</span>
-                  <span style={styles.avatarHint}>Opcional</span>
+            <div style={{ position: "relative", display: "inline-block" }}>
+              {/* Avatar circle */}
+              <div
+                style={styles.avatarLabel}
+                className="avatar-label"
+                onClick={() => setShowPhotoMenu((v) => !v)}
+              >
+                {photoPreview ? (
+                  <img src={photoPreview} alt="preview" style={styles.avatarImg} />
+                ) : (
+                  <div style={styles.avatarPlaceholder}>
+                    <span style={styles.avatarIcon}>📷</span>
+                    <span style={styles.avatarText}>Foto de perfil</span>
+                    <span style={styles.avatarHint}>Opcional</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Dropdown menu */}
+              {showPhotoMenu && (
+                <div style={styles.photoMenu} className="photo-menu">
+                  <button
+                    style={styles.photoMenuItem}
+                    className="photo-menu-item"
+                    onClick={() => fileInputRef.current.click()}
+                  >
+                    🖼️ &nbsp;Elegir archivo
+                  </button>
+                  <div style={styles.photoMenuDivider} />
+                  <button
+                    style={styles.photoMenuItem}
+                    className="photo-menu-item"
+                    onClick={openCamera}
+                  >
+                    📸 &nbsp;Tomar foto
+                  </button>
                 </div>
               )}
-            </label>
+            </div>
+
+            {/* Input file oculto */}
             <input
-              id="photo-upload"
+              ref={fileInputRef}
               type="file"
               accept="image/*"
-              onChange={handlePhoto}
+              onChange={handleFileChange}
               style={{ display: "none" }}
             />
           </div>
+
+          {/* ── Modal cámara ── */}
+          {showCamera && (
+            <div style={styles.cameraOverlay}>
+              <div style={styles.cameraModal}>
+                <p style={styles.cameraTitle}>📸 Tomar foto</p>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  style={styles.cameraVideo}
+                />
+                <canvas ref={canvasRef} style={{ display: "none" }} />
+                <div style={styles.cameraBtns}>
+                  <button onClick={closeCamera} style={styles.cameraCancelBtn} className="camera-cancel-btn">
+                    Cancelar
+                  </button>
+                  <button onClick={capturePhoto} style={styles.cameraCaptureBtn} className="camera-capture-btn">
+                    Capturar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Name */}
           <div style={styles.fieldGroup}>
@@ -158,7 +272,6 @@ export default function Register() {
                 {showPassword ? "" : "👁"}
               </button>
             </div>
-            {/* Strength bar */}
             {strength && (
               <div style={styles.strengthWrap}>
                 <div style={styles.strengthBg}>
@@ -186,7 +299,6 @@ export default function Register() {
                 {showConfirm ? "" : "👁"}
               </button>
             </div>
-            {/* Match indicator */}
             {form.confirmPassword && (
               <span style={{
                 fontSize: "0.75rem",
@@ -213,7 +325,6 @@ export default function Register() {
             ) : "Crear cuenta gratis →"}
           </button>
 
-          {/* Divider */}
           <div style={styles.divider}>
             <span style={styles.dividerLine} />
             <span style={styles.dividerText}>¿Ya tienes cuenta?</span>
@@ -223,7 +334,6 @@ export default function Register() {
           <Link to="/login" style={styles.loginBtn} className="login-btn">
             Iniciar Sesión
           </Link>
-
         </div>
       </div>
 
@@ -252,8 +362,20 @@ const globalStyles = `
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  .avatar-label:hover { border-color: rgba(200,169,110,0.5) !important; background: rgba(200,169,110,0.05) !important; }
-  .avatar-label { transition: all 0.2s ease !important; }
+  .avatar-label {
+    cursor: pointer;
+    transition: all 0.2s ease !important;
+  }
+  .avatar-label:hover {
+    border-color: rgba(200,169,110,0.5) !important;
+    background: rgba(200,169,110,0.05) !important;
+  }
+
+  .photo-menu-item:hover {
+    background: rgba(200,169,110,0.1) !important;
+    color: #c8a96e !important;
+  }
+  .photo-menu-item { transition: all 0.15s ease !important; }
 
   .input-wrap:focus-within {
     border-color: rgba(200,169,110,0.6) !important;
@@ -275,6 +397,10 @@ const globalStyles = `
     color: #c8a96e !important;
   }
   .login-btn { transition: all 0.2s ease !important; }
+
+  .camera-capture-btn:hover { background: #d4b87a !important; }
+  .camera-cancel-btn:hover { background: rgba(255,255,255,0.08) !important; }
+  .camera-capture-btn, .camera-cancel-btn { transition: all 0.2s ease !important; }
 
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner { animation: spin 0.8s linear infinite; }
@@ -379,18 +505,19 @@ const styles = {
   },
   form: { display: "flex", flexDirection: "column", gap: "1.1rem" },
 
+  // Avatar
   avatarSection: { display: "flex", justifyContent: "center", marginBottom: "0.5rem" },
   avatarLabel: {
     width: "90px",
     height: "90px",
     borderRadius: "50%",
     border: "2px dashed rgba(255,255,255,0.12)",
-    cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
     background: "rgba(255,255,255,0.03)",
+    userSelect: "none",
   },
   avatarImg: { width: "100%", height: "100%", objectFit: "cover" },
   avatarPlaceholder: {
@@ -403,6 +530,102 @@ const styles = {
   avatarText: { fontSize: "0.65rem", color: "#9e9a93", letterSpacing: "0.04em" },
   avatarHint: { fontSize: "0.6rem", color: "#3a3630" },
 
+  // Photo menu dropdown
+  photoMenu: {
+    position: "absolute",
+    top: "calc(100% + 8px)",
+    left: "50%",
+    transform: "translateX(-50%)",
+    background: "#13131f",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "10px",
+    overflow: "hidden",
+    zIndex: 20,
+    minWidth: "160px",
+    boxShadow: "0 8px 30px rgba(0,0,0,0.4)",
+  },
+  photoMenuItem: {
+    display: "block",
+    width: "100%",
+    padding: "0.7rem 1rem",
+    background: "transparent",
+    border: "none",
+    color: "#e8e4dc",
+    fontSize: "0.85rem",
+    cursor: "pointer",
+    textAlign: "left",
+    fontFamily: "'DM Sans', sans-serif",
+  },
+  photoMenuDivider: {
+    height: "1px",
+    background: "rgba(255,255,255,0.07)",
+  },
+
+  // Camera modal
+  cameraOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.85)",
+    zIndex: 100,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backdropFilter: "blur(6px)",
+  },
+  cameraModal: {
+    background: "#13131f",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "16px",
+    padding: "1.5rem",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "1rem",
+    maxWidth: "380px",
+    width: "90%",
+  },
+  cameraTitle: {
+    fontSize: "1rem",
+    fontWeight: 600,
+    color: "#e8e4dc",
+  },
+  cameraVideo: {
+    width: "100%",
+    borderRadius: "10px",
+    background: "#000",
+    maxHeight: "260px",
+    objectFit: "cover",
+  },
+  cameraBtns: {
+    display: "flex",
+    gap: "0.75rem",
+    width: "100%",
+  },
+  cameraCancelBtn: {
+    flex: 1,
+    padding: "0.75rem",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "10px",
+    color: "#9e9a93",
+    fontSize: "0.9rem",
+    cursor: "pointer",
+    fontFamily: "'DM Sans', sans-serif",
+  },
+  cameraCaptureBtn: {
+    flex: 1,
+    padding: "0.75rem",
+    background: "#c8a96e",
+    border: "none",
+    borderRadius: "10px",
+    color: "#080810",
+    fontSize: "0.9rem",
+    fontWeight: 600,
+    cursor: "pointer",
+    fontFamily: "'DM Sans', sans-serif",
+  },
+
+  // Fields
   fieldGroup: { display: "flex", flexDirection: "column", gap: "0.4rem" },
   label: { fontSize: "0.78rem", color: "#9e9a93", letterSpacing: "0.06em", textTransform: "uppercase" },
   inputWrap: {
@@ -471,7 +694,6 @@ const styles = {
     textDecoration: "none",
     fontSize: "0.9rem",
   },
-
   footerNote: {
     position: "relative",
     zIndex: 2,
