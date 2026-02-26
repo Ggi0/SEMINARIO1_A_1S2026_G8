@@ -28,19 +28,26 @@ def update_profile(id_usuario, nombre, foto):
 def find_by_email(email):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM usuarios WHERE email = %s", (email,))
+    cur.execute("SELECT * FROM usuarios WHERE correo = %s", (email,))
     user = cur.fetchone()
     cur.close()
     conn.close()
     return user
 
-def create_user(nombre_completo, email, password_hash):
+def create_user(nombre_completo, correo, password_hash, foto_key):
     conn = get_connection()
-    cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO usuarios (nombre_completo, email, password) VALUES (%s, %s, %s)",
-        (nombre_completo, email, password_hash)
-    )
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO usuarios (nombre_completo, correo, password, foto_perfil)
+        VALUES (%s, %s, %s, %s)
+        RETURNING id_usuario;
+    """, (nombre_completo, correo, password_hash, foto_key))
+
+    user_id = cursor.fetchone()[0]
+
     conn.commit()
-    cur.close()
+    cursor.close()
     conn.close()
+
+    return user_id

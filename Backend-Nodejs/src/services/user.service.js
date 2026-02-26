@@ -30,9 +30,9 @@ exports.updateProfile = async (data, file) => {
     await userRepository.updateProfile(
         id_usuario,
         nombre_completo || user.nombre_completo,
-        fotoKey
+        fotoKey,
+        user.password 
     );
-
     return {
         success: true,
         message: "Perfil actualizado correctamente"

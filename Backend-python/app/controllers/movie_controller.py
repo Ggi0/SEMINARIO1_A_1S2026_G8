@@ -4,7 +4,7 @@ import os
 
 movie_bp = Blueprint("movie_bp", __name__)
 
-@movie_bp.route("/peliculas", methods=["GET"])
+@movie_bp.route("/", methods=["GET"])
 def get_movies():
     try:
         movies = list_movies()
