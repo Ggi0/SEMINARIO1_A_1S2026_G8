@@ -124,6 +124,15 @@ export default function Gallery() {
           )}
         </div>
 
+{/* Playlist Button */}
+<Link
+  to="/playlist"
+  style={styles.playlistBtn}
+  className="playlist-btn"
+>
+  Mi Lista
+</Link>
+
         {/* Profile */}
         <div style={styles.profileArea}>
           <button
@@ -377,7 +386,14 @@ const globalStyles = `
 @keyframes progress {
   from { width: 100%; }
   to { width: 0%; }
+  
 }
+
+.playlist-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+  
 `;
 
 const styles = {
@@ -495,6 +511,22 @@ const styles = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
+  },
+
+  playlistBtn: {
+    textDecoration: "none",
+    padding: "8px 18px",
+    borderRadius: "20px",
+    fontSize: "0.85rem",
+    fontWeight: "600",
+    letterSpacing: "0.5px",
+    color: "#1f1f1f",
+    background: "linear-gradient(135deg, #f5c518, #e6b800)",
+    transition: "all 0.25s ease",
+    marginRight: "18px",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
   },
 
   dropdown: {
