@@ -7,7 +7,8 @@ from app.services.playlist_service import (
 
 playlist_bp = Blueprint("playlist_bp", __name__)
 
-@playlist_bp.route("/lista/agregar", methods=["POST"])
+# Agregar película a la playlist
+@playlist_bp.route("/", methods=["POST"])
 def add():
     try:
         data = request.json
@@ -27,16 +28,24 @@ def add():
         return jsonify({"success": False, "message": str(e)}), 400
 
 
-@playlist_bp.route("/lista/<int:id_usuario>", methods=["GET"])
+# Obtener playlist del usuario
+@playlist_bp.route("/<int:id_usuario>", methods=["GET"])
 def get_user(id_usuario):
     try:
         playlist = list_user_playlist(id_usuario)
-        return jsonify(playlist)
+
+        return jsonify({
+            "success": True,
+            "total": len(playlist),
+            "data": playlist
+        })
+
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 400
 
 
-@playlist_bp.route("/lista/eliminar", methods=["POST"])
+# Eliminar película de la playlist
+@playlist_bp.route("/", methods=["DELETE"])
 def remove():
     try:
         data = request.json

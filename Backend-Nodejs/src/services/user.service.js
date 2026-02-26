@@ -7,7 +7,7 @@ function hashPassword(password) {
 
 exports.updateProfile = async (data, file) => {
 
-    const { id_usuario, nombre_completo, password_actual, password_nueva } = data;
+    const { id_usuario, nombre_completo, password_actual } = data;
 
     if (!id_usuario || !password_actual) {
         throw new Error("Datos incompletos");
@@ -27,16 +27,12 @@ exports.updateProfile = async (data, file) => {
 
     const fotoKey = file ? `Fotos_Perfil/${file.originalname}` : user.foto_perfil;
 
-    // Si viene password_nueva, la encriptamos, si no usamos la actual
-    const nuevaPassword = password_nueva ? hashPassword(password_nueva) : user.password;
-
     await userRepository.updateProfile(
         id_usuario,
         nombre_completo || user.nombre_completo,
         fotoKey,
-        nuevaPassword  // ⬅️ pasamos la contraseña
+        user.password 
     );
-
     return {
         success: true,
         message: "Perfil actualizado correctamente"

@@ -9,8 +9,9 @@ async function getNotifications(req, res, next) {
     res.json({
       success: true,
       unread_count: notifications.filter(n => !n.leida).length,
+      total: notifications.length,
       data: notifications
-    });
+    }); 
 
   } catch (error) {
     next(error);

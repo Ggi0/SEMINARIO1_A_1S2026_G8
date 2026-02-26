@@ -16,9 +16,9 @@ def create_app():
     # Registrar Blueprints
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(user_bp, url_prefix="/api/user")
-    app.register_blueprint(movie_bp, url_prefix="/api/v1")
-    app.register_blueprint(playlist_bp, url_prefix="/api/v1")
-    app.register_blueprint(notification_bp, url_prefix="/api/v1")
+    app.register_blueprint(movie_bp, url_prefix="/api/movies")
+    app.register_blueprint(playlist_bp, url_prefix="/api/playlist")
+    app.register_blueprint(notification_bp, url_prefix="/api/notifications")
 
     @app.route("/")
     def home():

@@ -45,7 +45,7 @@ def register_user(data, file):
     foto_key = f"Fotos_Perfil/{file.filename}" if file else None
 
     # Guardar el usuario en la base de datos
-    create_user(correo, nombre, hashed, foto_key)
+    create_user(nombre, correo, hashed, foto_key)
 
     # Retornar respuesta exitosa
     return {

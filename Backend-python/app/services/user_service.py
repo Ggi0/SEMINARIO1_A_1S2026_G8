@@ -22,7 +22,8 @@ def update_profile(data, file):
 
     foto_key = f"Fotos_Perfil/{file.filename}" if file else user[4]
 
-    update_profile(id_usuario, nombre or user[2], foto_key)
+    # 👇 AQUÍ ESTABA EL ERROR
+    repo_update_profile(id_usuario, nombre or user[2], foto_key)
 
     return {
         "success": True,

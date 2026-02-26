@@ -22,17 +22,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(loggerMiddleware);
-app.use("/auth", authRoutes);
-app.use("/users", userRoutes);
-app.use("/movies", movieRoutes);
-app.use("/playlist", playlistRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
 /* =========================
    RUTAS
 ========================= */
 
-app.use("/api/v1/peliculas", movieRoutes);
-app.use("/api/v1/lista", playlistRoutes);
-app.use("/api/v1/notificaciones", notificationRoutes);
+app.use("/api/movies", movieRoutes);
+app.use("/api/playlist", playlistRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 /* =========================
    MANEJO DE ERRORES
