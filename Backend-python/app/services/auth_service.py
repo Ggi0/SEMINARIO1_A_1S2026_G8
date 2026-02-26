@@ -1,60 +1,76 @@
-# Importar módulo de hash para encriptación
+# Encriptación
 import hashlib
-# Importar módulo de expresiones regulares para validaciones
 import re
-# Importar funciones del repositorio de usuarios
+import time
+
+# Repositorio
 from app.repositories.user_repository import find_by_email, create_user
 
-# Función para encriptar contraseñas con MD5
+# S3 uploader
+from app.utils.s3_upload import upload_profile_image
+
+# Configuración AWS
+from app.config import Config
+
+
+# ==============================
+# UTILIDADES
+# ==============================
+
 def hash_password(password):
     return hashlib.md5(password.encode()).hexdigest()
 
-# Función para validar formato de correo electrónico
+
 def validar_correo(correo):
     return re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", correo)
 
-# Función principal para registrar un usuario
+
+# ==============================
+# REGISTRO
+# ==============================
+
 def register_user(data, file):
 
-    # Extraer datos del objeto recibido
     correo = data.get("correo")
     nombre = data.get("nombre_completo")
     password = data.get("password")
     confirm = data.get("confirm_password")
 
-    # Verificar que todos los campos estén presentes
+    # Validaciones
     if not correo or not nombre or not password or not confirm:
         raise Exception("Todos los campos son obligatorios")
 
-    # Validar que el correo tenga formato correcto
     if not validar_correo(correo):
         raise Exception("Formato de correo inválido")
 
-    # Verificar que las contraseñas coincidan
     if password != confirm:
         raise Exception("Las contraseñas no coinciden")
 
-    # Buscar si el correo ya existe en la base de datos
     if find_by_email(correo):
         raise Exception("El correo ya está registrado")
 
-    # Encriptar la contraseña
-    hashed = hash_password(password)
+    # Encriptar contraseña con MD5 (obligatorio en práctica)
+    hashed_password = hash_password(password)
 
-    # Crear ruta de la foto si se proporcionó un archivo
-    foto_key = f"Fotos_Perfil/{file.filename}" if file else None
+    # Subir imagen a S3 si existe
+    foto_key = None
 
-    # Guardar el usuario en la base de datos
-    create_user(nombre, correo, hashed, foto_key)
+    if file:
+        foto_key = upload_profile_image(file)
 
-    # Retornar respuesta exitosa
+    # Guardar usuario en BD
+    create_user(nombre, correo, hashed_password, foto_key)
+
     return {
         "success": True,
         "message": "Usuario registrado correctamente"
     }
 
 
-# Función principal para iniciar sesión
+# ==============================
+# LOGIN
+# ==============================
+
 def login_user(data):
 
     correo = data.get("correo")
@@ -73,7 +89,7 @@ def login_user(data):
     if not user:
         raise Exception("Usuario no encontrado")
 
-    # En tu tabla:
+    # Estructura esperada de la tabla:
     # id_usuario (0)
     # correo (1)
     # nombre_completo (2)
@@ -83,6 +99,10 @@ def login_user(data):
     if user[3] != hashed_password:
         raise Exception("Contraseña incorrecta")
 
+    # Construir URL pública de la imagen
+    base_url = f"https://{Config.AWS_BUCKET_NAME}.s3.{Config.AWS_REGION}.amazonaws.com"
+    foto_url = f"{base_url}/{user[4]}" if user[4] else None
+
     return {
         "success": True,
         "message": "Login exitoso",
@@ -90,7 +110,6 @@ def login_user(data):
             "id_usuario": user[0],
             "correo": user[1],
             "nombre_completo": user[2],
-            "foto_perfil": user[4]
+            "foto_perfil": foto_url
         }
     }
-

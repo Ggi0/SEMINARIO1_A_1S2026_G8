@@ -1,10 +1,38 @@
 import { Link } from "react-router-dom";
 
 const featuredMovies = [
-  { title: "Dune: Part Two", genre: "Sci-Fi", rating: "8.9", year: "2024", color: "#c8a96e" },
-  { title: "Oppenheimer", genre: "Drama", rating: "8.4", year: "2023", color: "#e07b39" },
-  { title: "Poor Things", genre: "Fantasy", rating: "8.0", year: "2023", color: "#7eb8c9" },
-  { title: "The Brutalist", genre: "Drama", rating: "7.9", year: "2024", color: "#a89b8c" },
+  {
+    title: "Dune: Part Two",
+    genre: "Sci-Fi",
+    rating: "8.9",
+    year: "2024",
+    color: "#c8a96e",
+    img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80&fit=crop",
+  },
+  {
+    title: "Oppenheimer",
+    genre: "Drama",
+    rating: "8.4",
+    year: "2023",
+    color: "#e07b39",
+    img: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&q=80&fit=crop",
+  },
+  {
+    title: "Poor Things",
+    genre: "Fantasy",
+    rating: "8.0",
+    year: "2023",
+    color: "#7eb8c9",
+    img: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&q=80&fit=crop",
+  },
+  {
+    title: "The Brutalist",
+    genre: "Drama",
+    rating: "7.9",
+    year: "2024",
+    color: "#a89b8c",
+    img: "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=400&q=80&fit=crop",
+  },
 ];
 
 export default function Home() {
@@ -16,6 +44,9 @@ export default function Home() {
       <div style={styles.ambientBg} />
       <div style={styles.grain} />
 
+      {/* Hero BG image */}
+      <div style={styles.heroBgImage} />
+
       {/* NAV */}
       <nav style={styles.nav}>
         <div style={styles.logo}>
@@ -23,9 +54,6 @@ export default function Home() {
           <span style={styles.logoText}>CLOUD<em>CINEMA</em></span>
         </div>
         <div style={styles.navLinks}>
-          <a href="#catalogo" style={styles.navLink}>Catálogo</a>
-          <a href="#generos" style={styles.navLink}>Géneros</a>
-          <a href="#tendencias" style={styles.navLink}>Tendencias</a>
           <Link to="/login" style={styles.navLinkGhost}>Iniciar Sesión</Link>
           <Link to="/register" style={styles.btnPrimary}>Registrarse</Link>
         </div>
@@ -34,7 +62,7 @@ export default function Home() {
       {/* HERO */}
       <section style={styles.hero}>
         <div style={styles.heroContent}>
-          <p style={styles.heroLabel}> Streaming Premium</p>
+          <p style={styles.heroLabel}>✦ Streaming Premium</p>
           <h1 style={styles.heroTitle}>
             El cine del mundo,<br />
             <span style={styles.heroAccent}>en tus manos.</span>
@@ -44,14 +72,13 @@ export default function Home() {
           </p>
           <div style={styles.heroCtas}>
             <Link to="/register" style={styles.ctaPrimary}>
-              Empezar gratis
+              Registrarse
               <span style={styles.ctaArrow}>→</span>
             </Link>
-            <Link to="/catalogo" style={styles.ctaSecondary}>
-              <span style={styles.playIcon}>▶</span> Ver catálogo
+            <Link to="/login" style={styles.ctaSecondary}>
+              Iniciar Sesión
             </Link>
           </div>
-          <p style={styles.heroNote}>✓ Sin tarjeta de crédito &nbsp;·&nbsp; ✓ Cancela cuando quieras</p>
         </div>
 
         {/* Floating cards */}
@@ -66,8 +93,14 @@ export default function Home() {
                 "--accent": movie.color,
               }}
             >
-              <div style={{ ...styles.cardPoster, background: `linear-gradient(135deg, ${movie.color}22, #0a0a0f)` }}>
-                <div style={{ ...styles.cardGlow, background: movie.color }} />
+              <div style={styles.cardPoster}>
+                <img
+                  src={movie.img}
+                  alt={movie.title}
+                  style={styles.cardImg}
+                />
+                {/* Color overlay */}
+                <div style={{ ...styles.cardOverlay, background: `linear-gradient(to top, ${movie.color}cc 0%, transparent 60%)` }} />
                 <span style={styles.cardRating}>★ {movie.rating}</span>
               </div>
               <div style={styles.cardInfo}>
@@ -82,9 +115,9 @@ export default function Home() {
       {/* STATS */}
       <section style={styles.stats}>
         {[
-          { num: "10K+", label: "Películas" },
-          { num: "4K", label: "Calidad Ultra HD" },
-          { num: "50+", label: "Géneros" },
+          { num: "10+", label: "Películas" },
+          { num: "720", label: "Calidad buena" },
+          { num: "10+", label: "Géneros" },
           { num: "∞", label: "Horas de entretenimiento" },
         ].map((s) => (
           <div key={s.label} style={styles.statItem}>
@@ -94,24 +127,24 @@ export default function Home() {
         ))}
       </section>
 
-      {/* GENRES */}
-      <section id="generos" style={styles.section}>
-        <h2 style={styles.sectionTitle}>Explora por género</h2>
-        <div style={styles.genreGrid}>
-          {["Acción", "Terror", "Comedia", "Romance", "Thriller", "Animación", "Documental", "Sci-Fi"].map((g) => (
-            <button key={g} className="genre-btn" style={styles.genreBtn}>{g}</button>
-          ))}
-        </div>
-      </section>
-
       {/* CTA BOTTOM */}
       <section style={styles.ctaSection}>
+        {/* Background cinematic image for CTA */}
+        <div style={styles.ctaBgWrap}>
+          <img
+            src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1200&q=80&fit=crop"
+            alt=""
+            style={styles.ctaBgImg}
+          />
+          <div style={styles.ctaBgOverlay} />
+        </div>
         <div style={styles.ctaBox}>
+          <span style={styles.ctaOrna}>◈</span>
           <h2 style={styles.ctaTitle}>¿Listo para empezar?</h2>
-          <p style={styles.ctaDesc}>Únete a millones de cinéfilos. Primer mes completamente gratis.</p>
+          <p style={styles.ctaDesc}>Únete a millones de cinéfilos y descubre el cine que el mundo tiene para ti.</p>
           <div style={styles.heroCtas}>
-            <Link to="/register" style={styles.ctaPrimary}>Crear cuenta gratis →</Link>
-            <Link to="/login" style={styles.ctaSecondary}>Ya tengo cuenta</Link>
+            <Link to="/register" style={styles.ctaPrimary}>Registrarse →</Link>
+            <Link to="/login" style={styles.ctaSecondary}>Iniciar Sesión</Link>
           </div>
         </div>
       </section>
@@ -190,6 +223,21 @@ const styles = {
     opacity: 0.4,
     pointerEvents: "none",
     zIndex: 1,
+  },
+
+  // HERO BG
+  heroBgImage: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: "100vh",
+    backgroundImage: "url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=1800&q=80&fit=crop')",
+    backgroundSize: "cover",
+    backgroundPosition: "center 30%",
+    opacity: 0.08,
+    zIndex: 0,
+    pointerEvents: "none",
   },
 
   // NAV
@@ -302,8 +350,6 @@ const styles = {
     border: "1px solid rgba(232,228,220,0.2)",
     borderRadius: "4px",
   },
-  playIcon: { fontSize: "0.7rem" },
-  heroNote: { marginTop: "1.5rem", fontSize: "0.8rem", color: "#5a5650", letterSpacing: "0.04em" },
 
   // CARDS
   cardGrid: {
@@ -322,9 +368,18 @@ const styles = {
   cardPoster: {
     height: "120px",
     position: "relative",
-    display: "flex",
-    alignItems: "flex-end",
-    padding: "0.5rem",
+    overflow: "hidden",
+  },
+  cardImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
+  },
+  cardOverlay: {
+    position: "absolute",
+    inset: 0,
+    zIndex: 1,
   },
   cardGlow: {
     position: "absolute",
@@ -335,15 +390,19 @@ const styles = {
     borderRadius: "50%",
     filter: "blur(20px)",
     opacity: 0.4,
+    zIndex: 0,
   },
   cardRating: {
-    position: "relative",
-    zIndex: 1,
+    position: "absolute",
+    bottom: "6px",
+    left: "8px",
+    zIndex: 2,
     fontSize: "0.72rem",
-    color: "#c8a96e",
-    background: "rgba(0,0,0,0.5)",
+    color: "#fff",
+    background: "rgba(0,0,0,0.55)",
     padding: "2px 6px",
     borderRadius: "3px",
+    backdropFilter: "blur(4px)",
   },
   cardInfo: { padding: "0.6rem 0.75rem 0.75rem" },
   cardTitle: { fontSize: "0.8rem", fontWeight: 500, marginBottom: "0.2rem" },
@@ -403,14 +462,42 @@ const styles = {
     padding: "5rem 4rem",
     display: "flex",
     justifyContent: "center",
+    overflow: "hidden",
+  },
+  ctaBgWrap: {
+    position: "absolute",
+    inset: 0,
+    zIndex: 0,
+  },
+  ctaBgImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    objectPosition: "center",
+    opacity: 0.18,
+  },
+  ctaBgOverlay: {
+    position: "absolute",
+    inset: 0,
+    background: "linear-gradient(to bottom, #080810 0%, transparent 40%, #080810 100%)",
   },
   ctaBox: {
+    position: "relative",
+    zIndex: 1,
     textAlign: "center",
     maxWidth: "600px",
     padding: "4rem",
     background: "rgba(200,169,110,0.05)",
     border: "1px solid rgba(200,169,110,0.15)",
     borderRadius: "16px",
+    backdropFilter: "blur(8px)",
+  },
+  ctaOrna: {
+    display: "block",
+    fontSize: "1.8rem",
+    color: "#c8a96e",
+    marginBottom: "1.25rem",
+    opacity: 0.7,
   },
   ctaTitle: {
     fontFamily: "'Playfair Display', serif",

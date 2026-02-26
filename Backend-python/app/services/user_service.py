@@ -1,5 +1,7 @@
 from app.repositories.user_repository import find_by_id, update_profile as repo_update_profile
 from app.services.auth_service import hash_password
+from app.utils.s3_upload import upload_profile_image
+
 
 def update_profile(data, file):
 
@@ -20,10 +22,17 @@ def update_profile(data, file):
     if user[3] != hashed:
         raise Exception("Contraseña actual incorrecta")
 
-    foto_key = f"Fotos_Perfil/{file.filename}" if file else user[4]
+    # 🔥 Subir nueva foto si existe
+    if file:
+        foto_key = upload_profile_image(file)
+    else:
+        foto_key = user[4]
 
-    # 👇 AQUÍ ESTABA EL ERROR
-    repo_update_profile(id_usuario, nombre or user[2], foto_key)
+    repo_update_profile(
+        id_usuario,
+        nombre if nombre else user[2],
+        foto_key
+    )
 
     return {
         "success": True,

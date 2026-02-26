@@ -8,14 +8,13 @@ exports.findById = async (id_usuario) => {
     return result.rows[0];
 };
 
-exports.updateProfile = async (id_usuario, nombre, foto, password) => {
+exports.updateProfile = async (id_usuario, nombre, foto) => {
     await pool.query(
         `UPDATE usuarios
          SET nombre_completo = $1,
-             foto_perfil = $2,
-             password = $3
-         WHERE id_usuario = $4`,
-        [nombre, foto, password, id_usuario]
+             foto_perfil = $2
+         WHERE id_usuario = $3`,
+        [nombre, foto, id_usuario]
     );
 };
 

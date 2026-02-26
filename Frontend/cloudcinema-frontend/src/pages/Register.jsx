@@ -160,7 +160,7 @@ export default function Register() {
                   <img src={photoPreview} alt="preview" style={styles.avatarImg} />
                 ) : (
                   <div style={styles.avatarPlaceholder}>
-                    <span style={styles.avatarIcon}>📷</span>
+                    <span style={styles.avatarIcon}></span>
                     <span style={styles.avatarText}>Foto de perfil</span>
                     <span style={styles.avatarHint}>Opcional</span>
                   </div>
@@ -175,7 +175,7 @@ export default function Register() {
                     className="photo-menu-item"
                     onClick={() => fileInputRef.current.click()}
                   >
-                    🖼️ &nbsp;Elegir archivo
+                     &nbsp;Elegir archivo
                   </button>
                   <div style={styles.photoMenuDivider} />
                   <button
@@ -183,7 +183,7 @@ export default function Register() {
                     className="photo-menu-item"
                     onClick={openCamera}
                   >
-                    📸 &nbsp;Tomar foto
+                     &nbsp;Tomar foto
                   </button>
                 </div>
               )}

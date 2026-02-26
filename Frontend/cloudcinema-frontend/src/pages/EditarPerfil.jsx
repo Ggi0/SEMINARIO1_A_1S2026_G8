@@ -161,7 +161,7 @@ export default function EditarPerfil() {
                   </div>
                 )}
                 <div style={styles.avatarOverlay} className="avatar-overlay">
-                  <span style={styles.avatarOverlayIcon}>📷</span>
+                  <span style={styles.avatarOverlayIcon}></span>
                   <span style={styles.avatarOverlayText}>Cambiar</span>
                 </div>
               </div>
@@ -174,7 +174,7 @@ export default function EditarPerfil() {
                     className="photo-menu-item"
                     onClick={() => fileInputRef.current.click()}
                   >
-                    🖼️ &nbsp;Elegir archivo
+                     &nbsp;Elegir archivo
                   </button>
                   <div style={styles.photoMenuDivider} />
                   <button
@@ -182,7 +182,7 @@ export default function EditarPerfil() {
                     className="photo-menu-item"
                     onClick={openCamera}
                   >
-                    📸 &nbsp;Tomar foto
+                     &nbsp;Tomar foto
                   </button>
                 </div>
               )}
