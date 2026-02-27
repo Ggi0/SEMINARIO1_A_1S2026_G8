@@ -44,6 +44,9 @@ Load Balancer → EC2 Python\
 Ambas EC2 → Amazon RDS\
 Ambas EC2 → S3 (Imágenes)
 
+
+![alt text](image-5.png)
+
 ------------------------------------------------------------------------
 
 ## Componentes Implementados
@@ -131,63 +134,67 @@ EC2: - Puerto 80 (HTTP) - Puerto 3000 - SSH (solo IP autorizada)
 
 ------------------------------------------------------------------------
 
-# 3. Usuarios IAM y Políticas Utilizadas
+# 3. Usuario IAM y Políticas Utilizadas
 
-Se aplicó separación de responsabilidades.
+En esta práctica se utilizó un único usuario IAM para la administración de todos los servicios AWS requeridos en la arquitectura de CloudCinema.
 
-## IAM-S3-User
+## Usuario IAM Utilizado
 
-Servicio: S3\
-Políticas: - AmazonS3FullAccess (limitado al bucket específico mediante
-policy personalizada)
+**Nombre del usuario:** `gio_user`
 
-Permisos: - s3:PutObject - s3:GetObject - s3:DeleteObject
+Este usuario fue utilizado para:
 
-Uso: - Subida de fotos de perfil - Subida de pósters de películas
+- Creación y configuración de instancias EC2  
+- Configuración de Security Groups  
+- Creación y administración del Application Load Balancer  
+- Creación y configuración de la base de datos en RDS  
+- Gestión de buckets S3  
+- Generación de Access Keys para la conexión del backend con AWS (boto3)
 
+---
+
+## Políticas Asociadas
+
+El usuario cuenta con permisos amplios para permitir la correcta configuración de la infraestructura.
+
+Políticas asignadas:
+
+- `AmazonEC2FullAccess`
+- `AmazonS3FullAccess`
+- `AmazonRDSFullAccess`
+- `ElasticLoadBalancingFullAccess`
+
+Estos permisos permitieron administrar los siguientes servicios:
+
+- EC2  
+- S3  
+- RDS  
+- Elastic Load Balancer  
+
+---
+
+## Justificación Técnica
+
+Aunque el enunciado recomienda la separación de responsabilidades mediante múltiples usuarios IAM, en esta implementación se utilizó un único usuario debido a:
+
+- Simplificación de la configuración durante el desarrollo.
+- Centralización de credenciales para la administración inicial.
+- Control de acceso reforzado mediante Security Groups.
+
+En un entorno productivo real se recomienda:
+
+- Implementar separación de responsabilidades.
+- Aplicar el principio de menor privilegio.
+- Utilizar IAM Roles asociadas a las instancias EC2 en lugar de Access Keys.
 ------------------------------------------------------------------------
 
-## IAM-EC2-User
+![alt text](image-4.png)
 
-Servicio: EC2\
-Políticas: - AmazonEC2FullAccess
 
-Uso: - Creación y gestión de instancias - Configuración de Security
-Groups
-
+![alt text](image-1-1.png)
+nos reunimos a realizar las configuraciones en amazon en un meet por eso solo utilizamos un iam
 ------------------------------------------------------------------------
 
-## IAM-RDS-User
-
-Servicio: RDS\
-Políticas: - AmazonRDSFullAccess
-
-Uso: - Creación y configuración de base de datos - Gestión de motor
-relacional
-
-------------------------------------------------------------------------
-
-## IAM-LoadBalancer-User
-
-Servicio: ELB\
-Políticas: - ElasticLoadBalancingFullAccess
-
-Uso: - Creación del Application Load Balancer - Configuración de Target
-Groups
-
-------------------------------------------------------------------------
-
-# 4. Capturas de Pantalla
-
-Insertar aquí las capturas de:
-
--   Buckets S3
--   Instancias EC2
--   Amazon RDS
--   Application Load Balancer
--   Aplicación Web funcionando
-
-------------------------------------------------------------------------
 
 # 5. Pruebas Realizadas
 
