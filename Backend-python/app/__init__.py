@@ -24,7 +24,7 @@ def create_app():
     def home():
         return {
             "success": True,
-            "message": "CloudCinema API Flask funcionando"
+            "message": "CloudCinema API Python funcionando correctamente"
         }
 
     @app.route("/health")
@@ -35,7 +35,7 @@ def create_app():
             cursor.execute("SELECT 1")
             cursor.close()
             conn.close()
-            return {"success": True, "message": "Conexión a PostgreSQL exitosa"}
+            return {"success": True, "message": "CloudCinema API Python funcionando correctamente"}
         except Exception as e:
             return {"success": False, "error": str(e)}, 500
 
