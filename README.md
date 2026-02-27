@@ -52,16 +52,16 @@ Ambas EC2 → S3 (Imágenes)
 
 Se crearon dos buckets:
 
--   Practica1-Web-G#
+-   Practica1-Web-G#8
     -   Hosting web estático
     -   Contiene archivos HTML, CSS y JS del frontend
--   Practica1-Images-G#
+-   Practica1-Images-G8
     -   Carpeta Fotos_Perfil/
     -   Carpeta Fotos_Peliculas/
     -   Permisos públicos con política s3:GetObject
 
 Las imágenes no se almacenan en la base de datos, únicamente se guarda
-la ruta: Fotos_Perfil/foto1.jpg
+la ruta: ![alt text](image.png)
 
 ------------------------------------------------------------------------
 
@@ -69,21 +69,21 @@ la ruta: Fotos_Perfil/foto1.jpg
 
 Se configuraron dos instancias:
 
-  Instancia    Tecnología          Puerto
-  ------------ ------------------- --------
-  EC2-Node     Node.js + Express   3000
-  EC2-Python   Python + Flask      5000
+  Instancia                  Tecnología          Puerto
+  ------------            -------------------    --------
+  EC2-Backend-nodejs-g8    Node.js + Express      3000
+  EC2-Backend-python-g8   Python + Flask          5000
 
 Ambas instancias:
 
 -   Utilizan AWS SDK
 -   Se conectan a la misma base de datos RDS
 -   Exponen los mismos endpoints:
-    -   /register
-    -   /login
-    -   /peliculas
-    -   /lista
-    -   /perfil
+    -   /auth
+    -   /user
+    -   /movies
+    -   /playlist
+    -   /health
 
 ------------------------------------------------------------------------
 
@@ -95,6 +95,8 @@ Ambas instancias:
 -   Prueba de alta disponibilidad:
     -   Al apagar una instancia, el sistema sigue funcionando
         correctamente
+
+    ![alt text](image-1.png)
 
 ------------------------------------------------------------------------
 
@@ -116,6 +118,8 @@ Características:
 -   No se almacenan imágenes binarias
 -   Solo URLs públicas de S3
 
+![alt text](image-2.png)
+
 ------------------------------------------------------------------------
 
 ### Security Groups
@@ -123,8 +127,7 @@ Características:
 Configuración aplicada:
 
 EC2: - Puerto 80 (HTTP) - Puerto 3000 - SSH (solo IP autorizada)
-
-RDS: - Puerto 3306 (MySQL) - Solo acceso desde Security Group de EC2
+![alt text](image-3.png)
 
 ------------------------------------------------------------------------
 
