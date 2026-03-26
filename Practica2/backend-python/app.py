@@ -10,7 +10,7 @@ from routes.files import files_bp
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins="*", methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["Content-Type", "Authorization"])
 
 # Registrar blueprints
 app.register_blueprint(auth_bp,  url_prefix='/api/auth')
@@ -25,5 +25,5 @@ def health():
 if __name__ == '__main__':
     test_connection()
     port = int(os.getenv('PORT', 5000))
-    print(f'🚀 Servidor Python corriendo en puerto {port}')
+    print(f' Servidor Python corriendo en puerto {port}')
     app.run(host='0.0.0.0', port=port, debug=False)
