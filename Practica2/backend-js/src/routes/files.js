@@ -23,7 +23,7 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/files/upload — subir archivo
+// POST /api/files/upload — subir archivo directamente
 router.post('/upload', authMiddleware, upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'Archivo requerido' });
@@ -33,12 +33,10 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
     const { originalname, mimetype, buffer, size } = req.file;
     const key = `files/${req.userId}/${Date.now()}_${originalname}`;
 
-    // Determinar tipo
     let file_type = 'other';
     if (mimetype.startsWith('image/')) file_type = 'image';
     else if (mimetype.startsWith('text/')) file_type = 'text';
 
-    // Subir a S3
     await s3.send(new PutObjectCommand({
       Bucket: process.env.S3_BUCKET_FILES,
       Key: key,
@@ -48,7 +46,6 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
 
     const file_url = `https://${process.env.S3_BUCKET_FILES}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 
-    // Guardar en DB
     const result = await pool.query(
       'INSERT INTO files (user_id, filename, file_type, file_url, file_size) VALUES ($1, $2, $3, $4, $5) RETURNING *',
       [req.userId, originalname, file_type, file_url, size]
@@ -58,6 +55,21 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al subir archivo' });
+  }
+});
+
+// POST /api/files/upload-url — guardar URL de archivo subido por Lambda
+router.post('/upload-url', authMiddleware, async (req, res) => {
+  const { filename, file_type, file_url, file_size } = req.body;
+  try {
+    const result = await pool.query(
+      'INSERT INTO files (user_id, filename, file_type, file_url, file_size) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [req.userId, filename, file_type, file_url, file_size]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al guardar archivo' });
   }
 });
 

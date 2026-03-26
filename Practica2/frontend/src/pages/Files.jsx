@@ -40,13 +40,43 @@ export default function Files() {
     finally { setLoading(false) }
   }
 
-  const handleUpload = async (e) => {
+const handleUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
     setUploading(true); setError('')
     try {
-      const fd = new FormData(); fd.append('file', file)
-      const r = await api.post('/api/files/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      // Convertir a base64
+      const base64 = await new Promise((resolve) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result.split(',')[1])
+        reader.readAsDataURL(file)
+      })
+
+      // Determinar Lambda según tipo
+      const isImage = file.type.startsWith('image/')
+      const lambdaUrl = isImage
+        ? import.meta.env.VITE_LAMBDA_UPLOAD_IMAGES
+        : import.meta.env.VITE_LAMBDA_UPLOAD_DOCUMENTS
+
+      // Subir a S3 via Lambda
+      const lambdaRes = await fetch(lambdaUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: file.name,
+          contentType: file.type,
+          fileData: base64
+        })
+      })
+      const { url } = await lambdaRes.json()
+
+      // Guardar URL en DB via backend
+      const r = await api.post('/api/files/upload-url', {
+        filename: file.name,
+        file_type: isImage ? 'image' : 'text',
+        file_url: url,
+        file_size: file.size
+      })
       setFiles([r.data, ...files])
     } catch { setError('Error al subir archivo') }
     finally { setUploading(false); e.target.value = '' }
