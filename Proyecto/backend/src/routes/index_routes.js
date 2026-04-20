@@ -12,24 +12,16 @@ router.get('/', (req, res) => {
 
 
 // importar rutas por modulo
-const usuarios = require("./usuario/user_routes");
-const publicaciones = require("./publicaciones/publi_routes");
-// se traen aquí el resto de modulos...
+const usuarios      = require('./usuario/user_routes');
+const publicaciones = require('./publicaciones/publi_routes');
+const auth          = require('./auth/auth_routes');
 
 
 
 // agregando el prefijo a su enpoitn segun el modulo
-router.use('/user', usuarios);
+router.use('/usuario',       usuarios);
 router.use('/publicaciones', publicaciones);
-
-// trabajar igual pare el resto...
-
-
-
-
-
-
-
+router.use('/auth',          auth);
 
 
 
