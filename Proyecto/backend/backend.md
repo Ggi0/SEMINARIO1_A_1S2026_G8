@@ -23,3 +23,8 @@
 
 ## instalar mysql2
 * `npm install mysql2`
+
+---
+
+## intalacions para cognito y rekognition
+* `npm install @aws-sdk/client-cognito-identity-provider @aws-sdk/client-rekognition amazon-cognito-identity-js jsonwebtoken jwks-rsa`
