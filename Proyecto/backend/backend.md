@@ -20,3 +20,6 @@
 
 ## instalar Dotenv
 * `npm install dotenv`
+
+## instalar mysql2
+* `npm install mysql2`

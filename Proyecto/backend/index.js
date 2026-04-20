@@ -6,6 +6,9 @@ const cors = require('cors');
 
 require("dotenv").config();
 
+// para probar la db
+const { testConnection } = require("./src/config/db");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || 'localhost';
@@ -35,6 +38,9 @@ app.use((req, res) => {
     mensaje: 'Ruta no encontrada'
   });
 });
+
+// test para probar la conexion a la db
+testConnection();
 
 // Iniciar servidor
 app.listen(PORT, () => {
