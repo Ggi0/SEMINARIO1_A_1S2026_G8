@@ -7,6 +7,7 @@ function Navbar() {
       <Link to="/publicaciones">Publicaciones</Link> |{" "}
       <Link to="/login">Login</Link> |{" "}
       <Link to="/registro">Registro</Link> |{" "}
+      <Link to="/confirmar-correo">Confirmar Correo</Link> |{" "}
     </nav>
   );
 }
