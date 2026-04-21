@@ -1,7 +1,8 @@
 // Protege rutas verificando el Access Token de Cognito en el header Authorization
 
 const { verificarToken } = require('../utils/cognitoJwt');
-const db = require('../config/db'); 
+const jwt = require('jsonwebtoken');
+const { pool } = require('../config/db');
 
 /**
  * Middleware que verifica el JWT y adjunta el usuario a req.usuario
@@ -20,14 +21,32 @@ async function verificarAuth(req, res, next) {
 
     const token = authHeader.split(' ')[1];
 
-    // Verifica firma y expiración contra las claves públicas de Cognito
-    const payload = await verificarToken(token);
+    let payload;
+    let rows = [];
 
-    // Busca el usuario en la BD local usando el cognito_sub del token
-    const [rows] = await db.query(
-      'SELECT id, username, correo, nombre_completo, foto_perfil_url, verificado FROM usuarios WHERE cognito_sub = ?',
-      [payload.sub]
-    );
+    try {
+      // Verifica firma y expiración contra las claves públicas de Cognito
+      payload = await verificarToken(token);
+
+      // Busca el usuario en la BD local usando el cognito_sub del token
+      [rows] = await pool.query(
+        'SELECT id, username, correo, nombre_completo, foto_perfil_url, verificado FROM usuarios WHERE cognito_sub = ?',
+        [payload.sub]
+      );
+    } catch (cognitoError) {
+      // Si no es un token Cognito válido, intenta token facial del backend
+      const secret = process.env.JWT_SECRET_FACIAL;
+      if (!secret) {
+        throw cognitoError;
+      }
+
+      payload = jwt.verify(token, secret);
+
+      [rows] = await pool.query(
+        'SELECT id, username, correo, nombre_completo, foto_perfil_url, verificado FROM usuarios WHERE id = ?',
+        [payload.userId]
+      );
+    }
 
     if (rows.length === 0) {
       return res.status(401).json({
