@@ -3,6 +3,7 @@
 
 const { CognitoIdentityProviderClient } = require('@aws-sdk/client-cognito-identity-provider');
 const { RekognitionClient } = require('@aws-sdk/client-rekognition');
+const { TranslateClient } = require('@aws-sdk/client-translate');
 
 const REGION = process.env.AWS_REGION || 'us-east-2';
 
@@ -22,4 +23,12 @@ const rekognitionClient = new RekognitionClient({
   },
 });
 
-module.exports = { cognitoClient, rekognitionClient };
+const translateClient = new TranslateClient({
+  region: REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+module.exports = { cognitoClient, rekognitionClient, translateClient };
