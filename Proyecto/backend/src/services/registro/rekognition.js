@@ -29,6 +29,11 @@ async function compararRostros(imagenBuffer, s3Key) {
     SimilarityThreshold: 80, // Mínimo 80% de similitud para aceptar
   });
 
+  console.log("BUCKET:", S3_BUCKET);
+console.log("KEY:", s3Key);
+console.log("REGION REKOGNITION:", process.env.AWS_REGION);
+
+
   try {
     const respuesta = await rekognitionClient.send(comando);
 
