@@ -56,3 +56,18 @@ export const subirImagen = async (base64, file) => {
 
   return await res.json();
 };
+
+
+
+// LOGIN FACIAL
+export const loginFacial = async (file) => {
+  const formData = new FormData();
+  formData.append("foto", file);
+
+  const res = await fetch(`${API_URL}/auth/login-facial`, {
+    method: "POST",
+    body: formData,
+  });
+
+  return await res.json();
+};
