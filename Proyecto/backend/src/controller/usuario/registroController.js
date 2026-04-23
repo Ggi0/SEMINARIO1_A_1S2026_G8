@@ -1,5 +1,6 @@
 const { registrarEnCognito, confirmarUsuarioCodigo } = require('../../services/registro/cognito');
 const { pool } = require('../../config/db');
+const bcrypt = require('bcrypt');
 
 /**
  * POST /api/usuario/registro
@@ -39,6 +40,8 @@ async function registrarUsuario(req, res) {
       });
     }
 
+    const passwordHash = await bcrypt.hash(password, 10);
+
     // 1. Crear usuario en Cognito
     const cognito_sub = await registrarEnCognito({
       username,
@@ -51,13 +54,14 @@ async function registrarUsuario(req, res) {
     // 2. Guardar en MySQL
     await pool.query(
       `INSERT INTO usuarios 
-      (username, correo, nombre_completo, dpi, cognito_sub, foto_perfil_url, foto_perfil_s3_key, verificado)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
+      (username, correo, nombre_completo, dpi, password_hash, cognito_sub, foto_perfil_url, foto_perfil_s3_key, verificado)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)`,
       [
         username,
         correo,
         nombre_completo,
         dpi,
+        passwordHash,
         cognito_sub,
         foto_perfil_url || null,
         foto_perfil_s3_key || null,

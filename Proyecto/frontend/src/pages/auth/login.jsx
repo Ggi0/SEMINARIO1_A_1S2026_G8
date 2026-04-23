@@ -32,6 +32,7 @@ export default function Login() {
       const res = await login(form);
       if (res.ok) {
         localStorage.setItem("accessToken", res.accessToken);
+        window.dispatchEvent(new Event("auth-change"));
         navigate("/publicaciones");
       } else {
         setError("Credenciales incorrectas. Intenta de nuevo.");
@@ -78,6 +79,7 @@ export default function Login() {
         const res = await loginFacial(file);
         if (res.ok) {
           localStorage.setItem("accessToken", res.accessToken);
+          window.dispatchEvent(new Event("auth-change"));
           navigate("/publicaciones");
         } else {
           setFacialMsg(res.mensaje ?? "No se reconoció el rostro.");

@@ -20,6 +20,8 @@ import {
   X,
   LogOut,
   House,
+  UserRound,
+  UserPlus,
 } from "lucide-react";
 
 const IDIOMAS = [
@@ -156,9 +158,9 @@ function Publicaciones() {
     <div className="page-wrap">
 
       {/* ── Navbar ── */}
-      <header className="sticky top-3 z-10 mx-auto max-w-3xl rounded-2xl border border-slate-200/80 bg-white/90 shadow-sm backdrop-blur">
-        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
+      <header className="hidden">
+        <div className="mx-auto flex flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
             <Link
               to="/"
               className="btn-muted inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700"
@@ -166,10 +168,24 @@ function Publicaciones() {
               <House className="h-3.5 w-3.5" />
               Inicio
             </Link>
-            <h1 className="text-lg font-bold text-gray-900">Social Feed</h1>
+            <Link
+              to="/perfil"
+              className="btn-muted inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700"
+            >
+              <UserRound className="h-3.5 w-3.5" />
+              Editar perfil
+            </Link>
+            <Link
+              to="/amigos"
+              className="btn-muted inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700"
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              Solicitudes
+            </Link>
+            <h1 className="hidden text-lg font-bold text-gray-900 lg:block">Social Feed</h1>
           </div>
           {/* Selector de idioma y cierre de sesión */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Globe className="h-4 w-4 text-gray-400" />
             <select
               value={idiomaDestino}
@@ -195,6 +211,26 @@ function Publicaciones() {
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-6 space-y-6">
+        <section className="glass-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-xl font-extrabold text-slate-900">Social Feed</h1>
+            <p className="text-sm text-slate-500">Publicaciones de tus amigos y propias.</p>
+          </div>
+          <label className="flex items-center gap-2">
+            <Globe className="h-4 w-4 text-gray-400" />
+            <select
+              value={idiomaDestino}
+              onChange={(e) => setIdiomaDestino(e.target.value)}
+              className="input-modern rounded-lg px-2 py-1.5 text-sm text-gray-700 outline-none"
+            >
+              {IDIOMAS.map((idioma) => (
+                <option key={idioma.code} value={idioma.code}>
+                  {idioma.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </section>
 
         {/* ── Crear publicación ── */}
         <section className="glass-card p-5">
