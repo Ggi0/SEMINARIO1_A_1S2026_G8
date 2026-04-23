@@ -8,6 +8,7 @@ import Navbar from "../components/Navbar";
 function AppRouter() {
   return (
     <BrowserRouter>
+      <Navbar />
       <Routes>
   {HomeRoutes()}
   {PublicRoutes()}
