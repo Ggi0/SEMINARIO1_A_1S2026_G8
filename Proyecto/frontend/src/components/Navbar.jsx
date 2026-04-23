@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Images, LogOut, UserPlus, UserRound } from "lucide-react";
+import { Images, LogOut, MessageCircle, UserPlus, UserRound } from "lucide-react";
 
 const navItems = [
   { to: "/publicaciones", label: "Feed", icon: Images },
   { to: "/amigos", label: "Solicitudes", icon: UserPlus },
+  { to: "/chat", label: "Chat", icon: MessageCircle },
   { to: "/perfil", label: "Perfil", icon: UserRound },
 ];
 

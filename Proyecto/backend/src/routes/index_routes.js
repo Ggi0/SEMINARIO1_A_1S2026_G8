@@ -15,6 +15,7 @@ router.get('/', (req, res) => {
 const usuarios      = require('./usuario/user_routes');
 const publicaciones = require('./publicaciones/publi_routes');
 const auth          = require('./auth/auth_routes');
+const chat          = require('./chat/chat_routes');
 
 
 
@@ -22,6 +23,7 @@ const auth          = require('./auth/auth_routes');
 router.use('/usuario',       usuarios);
 router.use('/publicaciones', publicaciones);
 router.use('/auth',          auth);
+router.use('/chat',          chat);
 
 
 
