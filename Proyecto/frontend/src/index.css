@@ -15,9 +15,12 @@ body {
 	font-family: "Sora", "Segoe UI", sans-serif;
 	color: #111827;
 	background:
-		radial-gradient(circle at 12% 8%, #fee2e2 0%, transparent 28%),
-		radial-gradient(circle at 88% 12%, #dbeafe 0%, transparent 26%),
-		radial-gradient(circle at 50% 100%, #dcfce7 0%, transparent 30%),
+		linear-gradient(120deg, rgba(255, 255, 255, 0.92), rgba(246, 251, 255, 0.98)),
+		repeating-linear-gradient(60deg, rgba(15, 23, 42, 0.028) 0 1px, transparent 1px 28px),
+		repeating-linear-gradient(-60deg, rgba(15, 23, 42, 0.028) 0 1px, transparent 1px 28px),
+		radial-gradient(circle at 18% 12%, #fee2e2 0%, transparent 22%),
+		radial-gradient(circle at 84% 10%, #dbeafe 0%, transparent 22%),
+		radial-gradient(circle at 50% 96%, #dcfce7 0%, transparent 24%),
 		#f8fafc;
 }
 
@@ -51,12 +54,14 @@ body {
 }
 
 .btn-muted {
-	border: 1px solid #d1d5db;
+	border: 1px solid #94a3b8;
 	background: #ffffff;
+	color: #0f172a;
 }
 
 .btn-muted:hover {
-	background: #f8fafc;
+	background: #f1f5f9;
+	border-color: #64748b;
 }
 
 .input-modern {
