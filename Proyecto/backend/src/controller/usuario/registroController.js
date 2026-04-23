@@ -70,7 +70,7 @@ async function registrarUsuario(req, res) {
     });
 
   } catch (error) {
-    console.error('[REGISTRO] Error:', error);
+    console.error('[REGISTRO] Error:', error?.name, error?.message, error?.$metadata || '');
 
     if (error.name === 'UsernameExistsException') {
       return res.status(400).json({
@@ -102,7 +102,7 @@ async function registrarUsuario(req, res) {
 
     return res.status(500).json({
       ok: false,
-      mensaje: 'Error en el registro',
+      mensaje: error?.message || 'Error en el registro',
     });
   }
 }
