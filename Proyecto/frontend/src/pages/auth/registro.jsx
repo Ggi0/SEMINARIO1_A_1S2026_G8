@@ -6,12 +6,14 @@ function Registro() {
   const [form, setForm] = useState({
     username: "",
     password: "",
+    repetir_password: "",
     correo: "",
     nombre_completo: "",
     dpi: "",
   });
 
   const [imagen, setImagen] = useState(null);
+  const [mensaje, setMensaje] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -48,6 +50,12 @@ function Registro() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMensaje("");
+
+    if (form.password !== form.repetir_password) {
+      setMensaje("Las contraseñas no coinciden");
+      return;
+    }
 
     let fotoData = {};
 
@@ -70,7 +78,7 @@ console.log("Tamaño comprimido:", fileComprimido.size / 1024 / 1024, "MB");
       const upload = await subirImagen(base64, imagen);
 
       if (!upload.ok) {
-        alert("Error subiendo imagen");
+        setMensaje(upload.mensaje || "Error subiendo imagen");
         return;
       }
 
@@ -89,8 +97,11 @@ console.log("Tamaño comprimido:", fileComprimido.size / 1024 / 1024, "MB");
     console.log(res);
 
     if (res.ok) {
-      alert("Revisa tu correo para confirmar");
+      setMensaje("Registro exitoso. Revisa tu correo para confirmar.");
+      return;
     }
+
+    setMensaje(res?.mensaje || "No se pudo registrar el usuario");
   };
 
   return (
@@ -98,16 +109,24 @@ console.log("Tamaño comprimido:", fileComprimido.size / 1024 / 1024, "MB");
       <h1>REGISTRO</h1>
 
       <form onSubmit={handleSubmit}>
-        <input name="username" placeholder="Correo" onChange={handleChange} />
+        <input name="username" placeholder="Username" onChange={handleChange} />
         <input name="correo" placeholder="Correo" onChange={handleChange} />
         <input name="nombre_completo" placeholder="Nombre" onChange={handleChange} />
         <input name="dpi" placeholder="DPI" onChange={handleChange} />
         <input type="password" name="password" placeholder="Password" onChange={handleChange} />
+        <input
+          type="password"
+          name="repetir_password"
+          placeholder="Repetir password"
+          onChange={handleChange}
+        />
 
         <input type="file" onChange={handleImage} />
 
         <button type="submit">Registrar</button>
       </form>
+
+      {mensaje ? <p>{mensaje}</p> : null}
     </div>
   );
 }
