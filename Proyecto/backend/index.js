@@ -31,6 +31,16 @@ app.get('/', (req, res) => {
   });
 });
 
+
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    ok: true,
+    mensaje: 'proyecto semi1 instancia1',
+    status: 'UP',
+    timestamp: new Date()
+  });
+});
+
 // Todas las rutas iniciarán con /api
 app.use('/api', indexRoutes);
 
