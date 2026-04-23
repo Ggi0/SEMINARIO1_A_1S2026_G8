@@ -24,6 +24,21 @@ async function registrarUsuario(req, res) {
       });
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(correo)) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: 'El correo no tiene un formato válido',
+      });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: 'La contraseña debe tener al menos 8 caracteres',
+      });
+    }
+
     // 1. Crear usuario en Cognito
     const cognito_sub = await registrarEnCognito({
       username,
@@ -61,6 +76,27 @@ async function registrarUsuario(req, res) {
       return res.status(400).json({
         ok: false,
         mensaje: 'El usuario ya existe',
+      });
+    }
+
+    if (error.name === 'InvalidPasswordException') {
+      return res.status(400).json({
+        ok: false,
+        mensaje: 'La contraseña no cumple la política de Cognito',
+      });
+    }
+
+    if (error.name === 'InvalidParameterException') {
+      return res.status(400).json({
+        ok: false,
+        mensaje: 'Datos inválidos para registro en Cognito',
+      });
+    }
+
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({
+        ok: false,
+        mensaje: 'Correo, DPI o username ya están registrados',
       });
     }
 
