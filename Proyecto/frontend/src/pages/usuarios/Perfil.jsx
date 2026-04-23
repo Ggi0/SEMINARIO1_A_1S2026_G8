@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Camera, CheckCircle, IdCard, ImagePlus, Loader2, Lock, Users, UserRound } from "lucide-react";
+import { Camera, CheckCircle, IdCard, ImagePlus, Loader2, Lock, UserRound } from "lucide-react";
 import { subirImagen } from "../../services/sesion/sesion";
 import { actualizarPerfil, obtenerPerfil } from "../../services/usuarios/perfil";
 
@@ -115,60 +114,48 @@ function Perfil() {
   return (
     <div className="page-wrap">
       <main className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[0.85fr_1.15fr]">
-        <section className="glass-card overflow-hidden">
-          <div className="bg-slate-900 p-7 text-white">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-300">
-              Cuenta Semi-Social
-            </p>
-            <h1 className="mt-3 text-3xl font-extrabold tracking-tight">Mi perfil</h1>
-            <p className="mt-2 text-sm leading-relaxed text-slate-300">
-              Actualiza tu nombre, DPI y foto de perfil. La contrasena confirma que eres tu antes de guardar cambios.
-            </p>
-          </div>
-
-          <div className="p-7">
-            <div className="mx-auto flex max-w-sm flex-col items-center text-center">
-              <div className="relative">
-                {fotoMostrada ? (
-                  <img
-                    src={fotoMostrada}
-                    alt="Foto de perfil"
-                    className="h-44 w-44 rounded-3xl object-cover shadow-lg ring-4 ring-white"
-                  />
-                ) : (
-                  <div className="flex h-44 w-44 items-center justify-center rounded-3xl bg-gradient-to-br from-cyan-500 to-teal-600 text-6xl font-black text-white shadow-lg ring-4 ring-white">
-                    {form.nombre_completo ? form.nombre_completo.charAt(0).toUpperCase() : "S"}
-                  </div>
-                )}
-                <span className="absolute -bottom-3 -right-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500 text-white shadow-md">
-                  <Camera className="h-5 w-5" />
-                </span>
-              </div>
-
-              <h2 className="mt-6 text-xl font-extrabold text-slate-900">
-                {form.nombre_completo || "Tu perfil"}
-              </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Esta foto tambien se usa para login facial.
-              </p>
-
-              <label className="btn-muted mt-5 inline-flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 transition">
-                <ImagePlus className="h-4 w-4" />
-                Cambiar foto
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => setArchivo(e.target.files?.[0] || null)}
+        <section className="glass-card p-7">
+          <div className="mx-auto flex max-w-sm flex-col items-center text-center">
+            <div className="relative">
+              {fotoMostrada ? (
+                <img
+                  src={fotoMostrada}
+                  alt="Foto de perfil"
+                  className="h-44 w-44 rounded-3xl object-cover shadow-lg ring-4 ring-white"
                 />
-              </label>
-
-              {archivo ? (
-                <p className="mt-3 max-w-full truncate rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700">
-                  {archivo.name}
-                </p>
-              ) : null}
+              ) : (
+                <div className="flex h-44 w-44 items-center justify-center rounded-3xl bg-gradient-to-br from-cyan-500 to-teal-600 text-6xl font-black text-white shadow-lg ring-4 ring-white">
+                  {form.nombre_completo ? form.nombre_completo.charAt(0).toUpperCase() : "S"}
+                </div>
+              )}
+              <span className="absolute -bottom-3 -right-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500 text-white shadow-md">
+                <Camera className="h-5 w-5" />
+              </span>
             </div>
+
+            <h2 className="mt-6 text-xl font-extrabold text-slate-900">
+              {form.nombre_completo || "Tu perfil"}
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Esta foto tambien se usa para login facial.
+            </p>
+
+            <label className="btn-muted mt-5 inline-flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 transition">
+              <ImagePlus className="h-4 w-4" />
+              Cambiar foto
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setArchivo(e.target.files?.[0] || null)}
+              />
+            </label>
+
+            {archivo ? (
+              <p className="mt-3 max-w-full truncate rounded-full bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700">
+                {archivo.name}
+              </p>
+            ) : null}
           </div>
         </section>
 
@@ -183,13 +170,6 @@ function Perfil() {
                 Se sincronizan con Cognito y se guardan en la base de datos.
               </p>
             </div>
-            <Link
-              to="/amigos"
-              className="btn-muted inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700"
-            >
-              <Users className="h-4 w-4" />
-              Ver amigos
-            </Link>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

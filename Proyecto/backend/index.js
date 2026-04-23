@@ -3,13 +3,16 @@
 
 const express = require('express');
 const cors = require('cors');
+const http = require('http');
 
 require("dotenv").config();
 
 // para probar la db
 const { testConnection } = require("./src/config/db");
+const { setupChatWebSocket } = require("./src/websocket/chatSocket");
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || 'localhost';
 
@@ -41,8 +44,9 @@ app.use((req, res) => {
 
 // test para probar la conexion a la db
 testConnection();
+setupChatWebSocket(server);
 
 // Iniciar servidor
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Servidor corriendo en http://${HOST}:${PORT}`);
 });

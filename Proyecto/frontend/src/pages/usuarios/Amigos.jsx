@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, Clock, MessageCircle, UserRound, UserRoundPlus, Users, X } from "lucide-react";
+import { Check, Clock, MessageCircle, UserRoundPlus, X } from "lucide-react";
 import {
   aceptarSolicitud,
   enviarSolicitud,
@@ -57,7 +57,6 @@ function Amigos() {
   const [recibidas, setRecibidas] = useState([]);
   const [enviadas, setEnviadas] = useState([]);
   const [amigos, setAmigos] = useState([]);
-  const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
 
   const cargarDatos = async () => {
@@ -77,24 +76,22 @@ function Amigos() {
   useEffect(() => {
     setLoading(true);
     cargarDatos()
-      .catch(() => setMensaje("Inicia sesion para gestionar tus amigos"))
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
-  const ejecutarAccion = async (accion, mensajeExito) => {
+  const ejecutarAccion = async (accion) => {
     try {
       setLoading(true);
-      setMensaje("");
       const res = await accion();
 
       if (!res.ok) {
         throw new Error(res.mensaje || "No se pudo completar la accion");
       }
 
-      setMensaje(res.mensaje || mensajeExito);
       await cargarDatos();
-    } catch (error) {
-      setMensaje(error?.response?.data?.mensaje || error?.message || "No se pudo completar la accion");
+    } catch {
+      await cargarDatos().catch(() => {});
     } finally {
       setLoading(false);
     }
@@ -103,63 +100,6 @@ function Amigos() {
   return (
     <div className="page-wrap">
       <main className="mx-auto max-w-5xl space-y-6">
-        <section className="glass-card overflow-hidden">
-          <div className="grid gap-0 lg:grid-cols-[1fr_0.8fr]">
-            <div className="p-7 md:p-8">
-              <span className="inline-flex items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-cyan-700">
-                <Users className="h-3.5 w-3.5" />
-                Usuarios y amigos
-              </span>
-              <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
-                Gestiona tus solicitudes de amistad
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-600 md:text-base">
-                Primero envia o responde solicitudes. Cuando una solicitud se acepta,
-                el usuario pasa a tu lista de amigos y queda listo para aparecer en el chat.
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-2">
-                <Link
-                  to="/perfil"
-                  className="btn-muted inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700"
-                >
-                  <UserRound className="h-4 w-4" />
-                  Ver perfil
-                </Link>
-                <Link
-                  to="/publicaciones"
-                  className="btn-brand inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-sm"
-                >
-                  Ir al feed
-                </Link>
-              </div>
-            </div>
-
-            <div className="flex items-center bg-slate-900 p-7 text-white md:p-8">
-              <div className="grid w-full grid-cols-3 gap-3">
-                <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 text-center">
-                  <p className="text-2xl font-black text-cyan-300">{usuarios.length}</p>
-                  <p className="mt-1 text-xs text-slate-300">Disponibles</p>
-                </div>
-                <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 text-center">
-                  <p className="text-2xl font-black text-amber-300">{recibidas.length}</p>
-                  <p className="mt-1 text-xs text-slate-300">Recibidas</p>
-                </div>
-                <div className="rounded-2xl border border-slate-700 bg-slate-800/80 p-4 text-center">
-                  <p className="text-2xl font-black text-emerald-300">{amigos.length}</p>
-                  <p className="mt-1 text-xs text-slate-300">Amigos</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {mensaje ? (
-          <p className="rounded-2xl border border-cyan-100 bg-cyan-50 px-4 py-3 text-sm font-semibold text-cyan-800">
-            {mensaje}
-          </p>
-        ) : null}
-
         <section className="grid gap-4 lg:grid-cols-2">
           <article className="glass-card p-5 lg:col-span-2">
             <div className="mb-4 flex items-center justify-between">
@@ -307,10 +247,13 @@ function Amigos() {
                     key={amigo.id}
                     usuario={amigo}
                     action={
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-black text-emerald-700">
+                      <Link
+                        to="/chat"
+                        className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-black text-emerald-700 transition hover:bg-emerald-100"
+                      >
                         <MessageCircle className="h-3.5 w-3.5" />
-                        Chat #{amigo.chat_id || "pendiente"}
-                      </span>
+                        Abrir chat
+                      </Link>
                     }
                   />
                 ))}
