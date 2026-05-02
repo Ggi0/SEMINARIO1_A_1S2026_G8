@@ -181,10 +181,12 @@ function setupChatWebSocket(server) {
         return;
       }
 
-      const token = url.searchParams.get('token');
+      const token = decodeURIComponent(url.searchParams.get('token') || '');
       const usuario = token ? await obtenerUsuarioDesdeToken(token) : null;
 
       if (!usuario) {
+        console.log("Token inválido o usuario no encontrado");
+        socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
         socket.destroy();
         return;
       }

@@ -16,6 +16,7 @@ const usuarios      = require('./usuario/user_routes');
 const publicaciones = require('./publicaciones/publi_routes');
 const auth          = require('./auth/auth_routes');
 const chat          = require('./chat/chat_routes');
+const chat_bot = require('./usuario/chat-bot_routes');
 
 
 
@@ -24,6 +25,10 @@ router.use('/usuario',       usuarios);
 router.use('/publicaciones', publicaciones);
 router.use('/auth',          auth);
 router.use('/chat',          chat);
+
+
+// para el chat bot
+router.use('/chat-bot', chat_bot);
 
 
 

@@ -24,6 +24,8 @@ import {
   UserPlus,
 } from "lucide-react";
 
+import ChatBot from "../../components/chat-bot";
+
 const IDIOMAS = [
   { code: "es", label: "Español" },
   { code: "en", label: "Inglés" },
@@ -465,6 +467,7 @@ function Publicaciones() {
               </div>
             </article>
           ))}
+          <ChatBot />
         </div>
       </main>
     </div>
